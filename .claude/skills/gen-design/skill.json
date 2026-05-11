@@ -1,0 +1,24 @@
+{
+  "name": "gen-design",
+  "description": "根据项目标准模板生成模块/功能设计文档，自动填充目录结构、标准章节、常见的数据库表设计模式",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "entry": "README.md",
+  "args": [
+    {
+      "name": "title",
+      "description": "设计文档标题（如：报表导出模块设计）",
+      "required": true
+    },
+    {
+      "name": "type",
+      "description": "文档类型：module（模块设计）或 feature（功能设计）",
+      "required": false
+    }
+  ],
+  "flags": {
+    "template": "仅显示标准模板，不生成文件",
+    "sql": "同时生成标准的DDL SQL模板",
+    "api": "同时生成RESTful API设计模板"
+  }
+}

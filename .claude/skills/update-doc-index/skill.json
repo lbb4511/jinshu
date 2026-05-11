@@ -1,0 +1,13 @@
+{
+  "name": "update-doc-index",
+  "description": "自动扫描文档目录，生成/更新文档总索引README.md，包含文档统计、完成进度、快速链接",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "entry": "README.md",
+  "args": [],
+  "flags": {
+    "dry-run": "仅预览，不实际修改文件",
+    "check": "检查现有索引与实际文件的差异",
+    "tree": "只输出目录树结构"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "gen-adr",
+  "description": "自动生成架构决策记录(ADR)，按照项目标准模板创建新的ADR文档",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "entry": "README.md",
+  "args": [
+    {
+      "name": "title",
+      "description": "决策标题（如：选择MyBatis而非JPA）",
+      "required": true
+    },
+    {
+      "name": "number",
+      "description": "ADR编号（如007）",
+      "required": false
+    }
+  ],
+  "flags": {
+    "list": "列出所有已有的ADR",
+    "template": "只显示ADR模板内容，不创建文件"
+  }
+}

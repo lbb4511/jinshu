@@ -1,0 +1,21 @@
+{
+  "name": "format-md",
+  "description": "整理文档格式、markdown格式化工具，包含标题层级规范化、自动生成目录、链接有效性检查、列表对齐、代码块统一、语法lint检查等",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "entry": "format.sh",
+  "args": [
+    {
+      "name": "path",
+      "description": "要格式化的文件或目录路径",
+      "required": true
+    }
+  ],
+  "flags": {
+    "check": "仅检查不修改，显示需要格式化的内容",
+    "toc": "自动生成/更新目录",
+    "links": "检查并修复相对链接",
+    "lint": "执行markdown lint检查",
+    "fix": "自动修复可修复问题（如多余H1标题降级为H2）"
+  }
+}

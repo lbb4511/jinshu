@@ -1,0 +1,19 @@
+{
+  "name": "check-tenantsql",
+  "description": "检查SQL是否符合多租户规范，验证是否遗漏tenant_id过滤条件，防止跨租户数据泄露",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "entry": "README.md",
+  "args": [
+    {
+      "name": "path",
+      "description": "要检查的SQL文件、Mapper XML文件或目录路径",
+      "required": true
+    }
+  ],
+  "flags": {
+    "all": "检查所有SQL相关文件（.xml, .sql, .java）",
+    "strict": "严格模式，检查是否使用@SkipTenantFilter注解并验证是否有安全说明",
+    "fix": "尝试自动修复遗漏的tenant_id（仅SQL文件）"
+  }
+}

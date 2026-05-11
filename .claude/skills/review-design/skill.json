@@ -1,0 +1,18 @@
+{
+  "name": "review-design",
+  "description": "设计文档评审技能，检查文档完整性、多租户规范、安全性、API设计、性能设计等",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "args": [
+    {
+      "name": "path",
+      "description": "设计文档路径或目录",
+      "required": true
+    }
+  ],
+  "flags": {
+    "strict": "严格模式，评审不通过则返回错误",
+    "summary": "仅输出评审摘要",
+    "report": "生成评审报告文件"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "review-test",
+  "description": "测试用例与测试数据评审技能，检查测试覆盖率、多租户隔离测试、测试数据脱敏合规性等",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "args": [
+    {
+      "name": "path",
+      "description": "测试文件路径或目录",
+      "required": true
+    }
+  ],
+  "flags": {
+    "strict": "严格模式，评审不通过则返回错误",
+    "summary": "仅输出评审摘要",
+    "report": "生成评审报告文件",
+    "data": "重点检查测试数据合规性"
+  }
+}

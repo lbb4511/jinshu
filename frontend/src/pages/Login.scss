@@ -1,0 +1,47 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  .login-card {
+    width: 400px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+
+    .p-card-title {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 24px;
+      color: #333;
+    }
+
+    .login-form {
+      .error-message {
+        margin-bottom: 20px;
+        width: 100%;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+
+        label {
+          display: block;
+          margin-bottom: 8px;
+          font-weight: 500;
+          color: #555;
+        }
+
+        .p-inputtext,
+        .p-password {
+          width: 100%;
+        }
+      }
+
+      .login-button {
+        width: 100%;
+        margin-top: 10px;
+      }
+    }
+  }
+}

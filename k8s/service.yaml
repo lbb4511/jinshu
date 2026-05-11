@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: jinshu-backend
+spec:
+  selector:
+    app: jinshu-backend
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jinshu-frontend
+spec:
+  selector:
+    app: jinshu-frontend
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
