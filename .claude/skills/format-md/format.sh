@@ -189,20 +189,36 @@ fix_links() {
 
     log_info "检查链接..."
 
-    # 查找所有markdown链接 [text](url)
-    grep -oP '\[.*?\]\(\K[^)]+' "$file" | while read -r link; do
-        # 跳过外部链接
-        if [[ "$link" =~ ^https?:// ]] || [[ "$link" =~ ^mailto: ]] || [[ "$link" =~ ^# ]]; then
-            continue
-        fi
+    # 使用Python更准确地解析markdown链接（支持路径中包含括号）
+    python3 - "$file" "$file_dir" << 'PYTHON'
+import sys
+import re
+import os
 
-        # 构建绝对路径
-        local abs_path=$(realpath -m "$file_dir/$link" 2>/dev/null || echo "")
+filepath = sys.argv[1]
+file_dir = sys.argv[2]
 
-        if [ -z "$abs_path" ] || [ ! -e "$abs_path" ]; then
-            log_warn "$file: 链接不存在: $link"
-        fi
-    done
+with open(filepath, 'r', encoding='utf-8') as f:
+    content = f.read()
+
+# 匹配 [text](url) 格式的链接
+# 注意：url 可能包含括号（如 (ADR)）
+for match in re.finditer(r'\[.*?\]\((.*?)\)(?=\s|$)', content, re.MULTILINE):
+    link = match.group(1).strip()
+
+    # 跳过外部链接和锚点
+    if link.startswith(('http://', 'https://', 'mailto:', '#')):
+        continue
+
+    # 移除非路径部分（如 "title" 在 "path "title"" 中）
+    if ' "' in link:
+        link = link.split(' "')[0]
+
+    abs_path = os.path.normpath(os.path.join(file_dir, link))
+
+    if not os.path.exists(abs_path):
+        print(f"[WARN] {filepath}: 链接不存在: {link}")
+PYTHON
 }
 
 # 使用prettier格式化
