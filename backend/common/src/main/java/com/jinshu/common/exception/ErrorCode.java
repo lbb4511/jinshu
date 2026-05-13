@@ -2,27 +2,107 @@ package com.jinshu.common.exception;
 
 import lombok.Getter;
 
+/**
+ * 错误码枚举
+ *
+ * 统一定义系统所有错误码
+ *
+ * 码段规划：
+ * - 0-99: 通用成功/错误
+ * - 400-499: HTTP标准状态码映射
+ * - 500-599: 服务器错误
+ * - 1000-1999: 租户/用户相关
+ * - 2000-2999: 报表相关
+ * - 3000-3999: 任务相关
+ * - 4000-4999: 文件相关
+ * - 5000-5999: 数据源相关
+ */
 @Getter
 public enum ErrorCode {
 
+    /**
+     * 成功
+     */
     SUCCESS(0, "成功"),
+
+    /**
+     * 参数错误
+     */
     PARAM_ERROR(400, "参数错误"),
+
+    /**
+     * 未授权
+     */
     UNAUTHORIZED(401, "未授权"),
+
+    /**
+     * 无权限
+     */
     FORBIDDEN(403, "无权限"),
+
+    /**
+     * 资源不存在
+     */
     NOT_FOUND(404, "资源不存在"),
+
+    /**
+     * 系统内部错误
+     */
     INTERNAL_ERROR(500, "系统内部错误"),
 
+    /**
+     * 租户不存在
+     */
     TENANT_NOT_FOUND(1001, "租户不存在"),
+
+    /**
+     * 用户不存在
+     */
     USER_NOT_FOUND(1002, "用户不存在"),
+
+    /**
+     * 用户名或密码错误
+     */
     USERNAME_PASSWORD_ERROR(1003, "用户名或密码错误"),
+
+    /**
+     * 报表不存在
+     */
     REPORT_NOT_FOUND(2001, "报表不存在"),
+
+    /**
+     * 任务不存在
+     */
     TASK_NOT_FOUND(3001, "任务不存在"),
+
+    /**
+     * 任务状态不允许此操作
+     */
     TASK_STATUS_ERROR(3002, "任务状态不允许此操作"),
+
+    /**
+     * 文件类型不支持
+     */
     FILE_TYPE_NOT_SUPPORTED(4001, "文件类型不支持"),
+
+    /**
+     * 文件大小超出限制
+     */
     FILE_SIZE_EXCEEDED(4002, "文件大小超出限制"),
+
+    /**
+     * 数据源连接失败
+     */
     DATA_SOURCE_CONNECT_FAILED(5001, "数据源连接失败");
 
+    /**
+     * 错误码
+     */
     private final int code;
+
+    /**
+     * 错误信息
+     */
     private final String message;
 
     ErrorCode(int code, String message) {

@@ -1,3 +1,6 @@
+/**
+ * 租户类型定义
+ */
 export interface Tenant {
   id: number
   name: string
@@ -8,6 +11,9 @@ export interface Tenant {
   updatedAt: string
 }
 
+/**
+ * 用户类型定义
+ */
 export interface User {
   id: number
   tenantId: number
@@ -19,6 +25,9 @@ export interface User {
   updatedAt: string
 }
 
+/**
+ * 报表元数据类型定义
+ */
 export interface ReportMetadata {
   id: number
   tenantId: number
@@ -32,6 +41,9 @@ export interface ReportMetadata {
   updatedAt: string
 }
 
+/**
+ * 任务类型定义
+ */
 export interface Task {
   id: number
   tenantId: number
@@ -47,6 +59,9 @@ export interface Task {
   completedAt?: string
 }
 
+/**
+ * 分页结果类型定义
+ */
 export interface PageResult<T> {
   list: T[]
   total: number
@@ -54,6 +69,9 @@ export interface PageResult<T> {
   pageSize: number
 }
 
+/**
+ * 统一API响应类型定义
+ */
 export interface Result<T = any> {
   code: number
   message: string
