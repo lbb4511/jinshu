@@ -1,0 +1,14 @@
+{
+  "name": "setup-dev",
+  "description": "一键初始化锦书企业级报表系统开发环境，包括检查依赖、启动基础设施、初始化数据库",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "entry": "README.md",
+  "args": [],
+  "flags": {
+    "skip-deps": "跳过依赖检查",
+    "skip-infra": "跳过基础设施启动",
+    "skip-db": "跳过数据库初始化",
+    "force": "强制重新初始化（删除已有数据）"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "check-health",
+  "description": "检查锦书系统所有服务的健康状态，包括基础设施、后端、前端",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "entry": "README.md",
+  "args": [],
+  "flags": {
+    "infra-only": "仅检查基础设施",
+    "backend-only": "仅检查后端服务",
+    "frontend-only": "仅检查前端服务",
+    "watch": "持续监控模式，每10秒检查一次",
+    "json": "输出 JSON 格式结果"
+  }
+}

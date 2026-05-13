@@ -1,40 +1,35 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.jinshu.dao.ReportMapper">
+<mapper namespace="com.jinshu.api.dao.ReportMapper">
 
-    <!-- 通用查询
-        这里写原始 SQL 中不需要写 tenant_id
-        TenantInterceptor 会自动注入！
-    -->
-
-    <select id="selectById" resultType="com.jinshu.entity.Report">
-        SELECT * FROM report WHERE id = #{id}
+    <select id="selectById" resultType="com.jinshu.common.entity.Report">
+        SELECT * FROM report_metadata WHERE id = #{id}
     </select>
 
-    <select id="selectByReportId" resultType="com.jinshu.entity.Report">
-        SELECT * FROM report WHERE report_id = #{reportId} ORDER BY row_no
+    <select id="selectByReportId" resultType="com.jinshu.common.entity.Report">
+        SELECT * FROM report_metadata WHERE id = #{reportId}
     </select>
 
-    <select id="selectList" resultType="com.jinshu.entity.Report">
-        SELECT * FROM report
+    <select id="selectList" resultType="com.jinshu.common.entity.Report">
+        SELECT * FROM report_metadata
         ORDER BY created_at DESC
     </select>
 
     <insert id="insert">
-        INSERT INTO report (tenant_id, name, description, created_by)
-        VALUES (#{tenantId}, #{name}, #{description}, #{createdBy})
+        INSERT INTO report_metadata (tenant_id, name, description, schema_version, created_by)
+        VALUES (#{tenantId}, #{name}, #{description}, #{schemaVersion}, #{createdBy})
     </insert>
 
     <update id="update">
-        UPDATE report
+        UPDATE report_metadata
         SET name = #{name},
             description = #{description}
         WHERE id = #{id}
     </update>
 
     <delete id="deleteById">
-        DELETE FROM report WHERE id = #{id}
+        DELETE FROM report_metadata WHERE id = #{id}
     </delete>
 
 </mapper>

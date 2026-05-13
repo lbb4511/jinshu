@@ -1,0 +1,15 @@
+{
+  "name": "format-code",
+  "description": "格式化锦书项目所有代码，包括后端 Java 和前端 TypeScript/JavaScript",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "entry": "README.md",
+  "args": [],
+  "flags": {
+    "backend-only": "仅格式化后端代码",
+    "frontend-only": "仅格式化前端代码",
+    "check": "仅检查是否需要格式化，不修改文件",
+    "staged": "仅格式化 Git 暂存区的文件",
+    "quiet": "静默模式，减少输出"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "run-tests",
+  "description": "运行锦书系统的测试，支持单元测试、集成测试、端到端测试",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "entry": "README.md",
+  "args": [],
+  "flags": {
+    "backend-only": "仅运行后端测试",
+    "frontend-only": "仅运行前端测试",
+    "unit-only": "仅运行单元测试",
+    "integration-only": "仅运行集成测试",
+    "e2e-only": "仅运行端到端测试",
+    "watch": "监听模式，文件变更时自动重跑",
+    "coverage": "生成测试覆盖率报告",
+    "verbose": "详细输出模式"
+  }
+}

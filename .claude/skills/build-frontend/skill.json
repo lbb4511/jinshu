@@ -1,0 +1,17 @@
+{
+  "name": "build-frontend",
+  "description": "构建锦书前端项目，支持类型检查、Lint、打包等多种模式",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "entry": "README.md",
+  "args": [],
+  "flags": {
+    "clean": "先 clean 再构建（删除 node_modules/.vite）",
+    "type-check": "运行 TypeScript 类型检查",
+    "lint": "运行 ESLint 检查",
+    "test": "运行单元测试",
+    "install": "先安装依赖再构建",
+    "watch": "监听模式（开发用）",
+    "analyze": "生成构建包大小分析报告"
+  }
+}

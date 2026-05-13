@@ -1,0 +1,15 @@
+{
+  "name": "stop-all",
+  "description": "一键停止锦书系统所有服务，包括基础设施、后端、前端",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "entry": "README.md",
+  "args": [],
+  "flags": {
+    "infra-only": "仅停止基础设施",
+    "backend-only": "仅停止后端服务",
+    "frontend-only": "仅停止前端服务",
+    "purge": "同时删除 Docker 容器和数据卷（危险！）",
+    "force": "强制停止，立即杀死进程"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "build-backend",
+  "description": "构建锦书后端项目，支持增量编译、测试、打包等多种模式",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "entry": "README.md",
+  "args": [],
+  "flags": {
+    "clean": "先 clean 再构建",
+    "test": "运行单元测试",
+    "integration-test": "运行集成测试",
+    "package": "打包为可执行 jar",
+    "skip-checks": "跳过所有检查（lint、test等）",
+    "parallel": "并行构建各模块",
+    "all": "构建所有模块（common + api + batch + worker + data-sync）"
+  }
+}

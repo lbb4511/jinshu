@@ -38,6 +38,21 @@ public class Report {
     private String description;
 
     /**
+     * 表结构版本号
+     */
+    private Integer schemaVersion;
+
+    /**
+     * 数据源ID
+     */
+    private Long dataSourceId;
+
+    /**
+     * 模板配置
+     */
+    private String templateConfig;
+
+    /**
      * 创建人ID
      */
     private Long createdBy;

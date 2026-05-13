@@ -1,0 +1,26 @@
+{
+  "name": "db-migrate",
+  "description": "数据库迁移管理：创建迁移、执行迁移、回滚、查看迁移历史",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "entry": "README.md",
+  "args": [
+    {
+      "name": "action",
+      "description": "操作：create、up、down、status、history",
+      "required": false
+    },
+    {
+      "name": "name",
+      "description": "迁移名称（create 操作时需要）",
+      "required": false
+    }
+  ],
+  "flags": {
+    "dry-run": "模拟运行，不实际执行",
+    "target": "目标迁移版本（用于 up/down）",
+    "all": "应用所有未执行的迁移（up）或回滚所有（down）",
+    "sql-only": "仅生成 SQL，不执行",
+    "force": "强制执行，忽略检查"
+  }
+}

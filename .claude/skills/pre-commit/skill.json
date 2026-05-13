@@ -1,0 +1,15 @@
+{
+  "name": "pre-commit",
+  "description": "提交前完整检查：代码格式化、类型检查、Lint、单元测试、多租户SQL检查",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "entry": "README.md",
+  "args": [],
+  "flags": {
+    "quick": "快速模式，跳过慢的检查（如集成测试）",
+    "skip-tests": "跳过测试",
+    "skip-format": "跳过代码格式化",
+    "skip-lint": "跳过代码检查",
+    "skip-tenantsql": "跳过多租户SQL检查"
+  }
+}

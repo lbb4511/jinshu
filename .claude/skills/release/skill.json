@@ -1,0 +1,21 @@
+{
+  "name": "release",
+  "description": "锦书系统发布流程：版本更新、构建、打包、发布说明生成",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "entry": "README.md",
+  "args": [
+    {
+      "name": "version",
+      "description": "要发布的版本号（如：1.0.0）",
+      "required": true
+    }
+  ],
+  "flags": {
+    "dry-run": "模拟发布，不真正执行",
+    "skip-tests": "跳过测试",
+    "skip-build": "跳过构建（使用已有构建产物）",
+    "tag-only": "仅创建 Git tag，不做其他操作",
+    "notes-only": "仅生成发布说明，不做其他操作"
+  }
+}

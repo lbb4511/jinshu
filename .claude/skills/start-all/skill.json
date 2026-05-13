@@ -1,0 +1,15 @@
+{
+  "name": "start-all",
+  "description": "一键启动锦书系统所有服务，包括基础设施、后端、前端",
+  "author": "jinshu-team",
+  "version": "1.0.0",
+  "entry": "README.md",
+  "args": [],
+  "flags": {
+    "infra-only": "仅启动基础设施（数据库、Redis、RabbitMQ）",
+    "backend-only": "仅启动后端服务",
+    "frontend-only": "仅启动前端服务",
+    "detach": "后端和前端后台运行（仅基础设施支持）",
+    "wait": "等待服务健康检查通过后再退出"
+  }
+}
