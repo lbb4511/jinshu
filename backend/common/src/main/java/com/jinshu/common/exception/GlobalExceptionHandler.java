@@ -1,6 +1,6 @@
-package com.jinshu.common.common.exception;
+package com.jinshu.common.exception;
 
-import com.jinshu.common.common.result.Result;
+import com.jinshu.common.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;

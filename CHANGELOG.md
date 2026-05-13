@@ -6,6 +6,27 @@
 
 ---
 
+## [Unreleased]
+
+### 新增
+
+- ✅ 引入 Python 3.12+ 作为 AI/数据科学辅助语言（决策 007）
+  - 新增 `ai-services/` 模块骨架（pyproject.toml + src/jinshu_ai/）
+  - 适用范围：LLM 报表生成、Pandas/NumPy 分析、运维脚本
+  - 禁止用于业务核心逻辑与直连业务数据库写操作
+- ✅ 引入 Rust 1.80+ 作为高性能/系统级辅助语言（决策 008）
+  - 新增 `native/` Cargo workspace 骨架（excel-parser / wasm-grid / cli）
+  - 适用范围：高性能 Excel 解析、WASM 前端组件、租户 CLI 工具
+  - 禁止用于业务编排逻辑与强业务约束模块
+- ✅ `docs/01-立项与架构/03.技术选型决策记录.md` 新增决策 007、008 与 3 项待评估决策
+
+### 修复
+
+- 🐛 修正 README.md 中"流式处理OOM"语义歧义为"流式处理防OOM"
+- 🐛 同步 README.md 技术栈版本与 CHANGELOG（React 19 / Spring Boot 3.3 / PostgreSQL 16 / JDK 21 / Node 20）
+
+---
+
 ## [0.1.0] - 2026-05-13
 
 ### 新增

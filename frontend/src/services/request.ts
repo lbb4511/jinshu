@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
+import axios, { InternalAxiosRequestConfig, AxiosResponse } from 'axios'
 
 interface ResponseData<T = any> {
   code: number
@@ -12,7 +12,7 @@ const request = axios.create({
 })
 
 request.interceptors.request.use(
-  (config: AxiosRequestConfig) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token')
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
@@ -23,7 +23,9 @@ request.interceptors.request.use(
 )
 
 request.interceptors.response.use(
-  (response: AxiosResponse<ResponseData>) => response.data,
+  (response: AxiosResponse<ResponseData>) => {
+    return response
+  },
   (error) => {
     console.error('Request Error:', error)
     return Promise.reject(error)

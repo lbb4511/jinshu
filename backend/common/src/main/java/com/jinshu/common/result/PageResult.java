@@ -1,4 +1,4 @@
-package com.jinshu.common.common.result;
+package com.jinshu.common.result;
 
 import lombok.Data;
 

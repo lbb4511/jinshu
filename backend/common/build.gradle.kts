@@ -1,15 +1,19 @@
 plugins {
     id("java-library")
+    id("io.spring.dependency-management")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:4.0.6")
+    }
+    dependencies {
+        dependency("org.projectlombok:lombok:1.18.46")
+    }
 }
 
 dependencies {
-    api(libs.spring.boot.starter.web)
-    api(libs.spring.boot.starter.validation)
-    api(libs.spring.boot.starter.aspectj)
-    api(libs.spring.boot.starter.data.redis)
-    api(libs.commons.lang3)
-    api(libs.commons.io)
-    api(libs.mybatis.spring.boot.starter)
-    compileOnly(libs.lombok)
-    annotationProcessor(libs.lombok)
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+    api("org.springframework.boot:spring-boot-starter-web")
 }

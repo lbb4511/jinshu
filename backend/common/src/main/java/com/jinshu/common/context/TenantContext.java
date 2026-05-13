@@ -1,4 +1,4 @@
-package com.jinshu.common.common.context;
+package com.jinshu.common.context;
 
 public class TenantContext {
 

@@ -1,4 +1,4 @@
-package com.jinshu.common.common.exception;
+package com.jinshu.common.exception;
 
 import lombok.Getter;
 

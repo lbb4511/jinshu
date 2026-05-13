@@ -1,4 +1,3 @@
-import React from 'react'
 import { Menubar } from 'primereact/menubar'
 import { Button } from 'primereact/button'
 import { MenuItem } from 'primereact/menuitem'

@@ -1,4 +1,4 @@
-package com.jinshu.common.common.utils;
+package com.jinshu.common.utils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

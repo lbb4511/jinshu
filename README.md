@@ -16,7 +16,7 @@
 - ✅ **动静同构**：React组件同时服务于动态网页与静态渲染
 - ✅ **高性能PDF**：Chrome Headless渲染 + CMYK印刷级色彩支持
 - ✅ **多租户架构**：租户数据隔离 + 公平调度防抢占
-- ✅ **百万级数据**：支持百万行Excel导入导出，流式处理OOM
+- ✅ **百万级数据**：支持百万行Excel导入导出，流式处理防OOM
 - ✅ **安全合规**：全量审计日志 + 水印防泄露 + 等保三级支持
 - ✅ **云原生部署**：K3s容器化部署，水平自动扩缩容
 
@@ -24,9 +24,11 @@
 
 | 层级 | 技术选型 |
 |-----|---------|
-| **前端** | React 18, PrimeReact, ECharts |
-| **后端** | Spring Boot 3.x, Spring Batch, Spring Security, MyBatis |
-| **数据库** | PostgreSQL 15 |
+| **前端** | React 19, PrimeReact, ECharts |
+| **后端** | Spring Boot 3.3, Spring Batch, Spring Security, MyBatis |
+| **AI/数据科学** | Python 3.12+（LLM 报表生成、Pandas/NumPy 分析、运维脚本） |
+| **高性能/系统级** | Rust 1.80+（高性能 Excel 解析、WASM 前端组件、CLI 工具） |
+| **数据库** | PostgreSQL 16 |
 | **消息队列** | RabbitMQ / RocketMQ |
 | **PDF渲染** | Puppeteer (Chrome Headless), Apache PDFBox |
 | **部署架构** | K3s + Docker |
@@ -35,9 +37,11 @@
 
 ### 环境要求
 
-- JDK 17+
-- Node.js 18+
-- PostgreSQL 15
+- JDK 21+
+- Node.js 20+
+- PostgreSQL 16
+- Python 3.12+（仅 ai-services 模块）
+- Rust 1.80+（仅 native 模块）
 - Docker / K3s (可选)
 
 ### 本地开发
@@ -77,6 +81,14 @@ jinshu/
 ├── frontend/                # React前端
 │   ├── src/                 # 源码
 │   └── public/              # 静态资源
+├── ai-services/             # Python AI/数据科学模块（LLM、分析、脚本）
+│   ├── src/jinshu_ai/       # 源码
+│   └── pyproject.toml       # 依赖配置
+├── native/                  # Rust 高性能/系统级模块（Cargo workspace）
+│   └── crates/
+│       ├── excel-parser/    # 高性能 Excel 解析（JNI 可调用）
+│       ├── wasm-grid/       # WASM 前端组件
+│       └── cli/             # 租户 CLI 工具
 ├── k8s/                     # K3s部署配置
 ├── sql/                     # 数据库脚本
 │   ├── ddl/                 # 表结构

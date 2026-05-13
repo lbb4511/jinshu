@@ -3,14 +3,23 @@ plugins {
     id("io.spring.dependency-management")
 }
 
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:4.0.6")
+    }
+    dependencies {
+        dependency("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.5")
+        dependency("org.projectlombok:lombok:1.18.46")
+    }
+}
+
 dependencies {
     implementation(project(":common"))
-    implementation(libs.spring.boot.starter.web)
-    implementation(libs.spring.boot.starter.security)
-    implementation(libs.mybatis.spring.boot.starter)
-    implementation(libs.postgresql)
-    compileOnly(libs.lombok)
-    annotationProcessor(libs.lombok)
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter")
+    implementation("org.postgresql:postgresql")
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
