@@ -42,19 +42,19 @@
 
 ```bash
 # 评审单个设计文档
-/review-design docs/03-模块设计/01.报表导入模块设计.md
+/review-design docs/04-模块设计/01.报表导入模块设计.md
 
 # 评审整个目录
-/review-design docs/03-模块设计/
+/review-design docs/04-模块设计/
 
 # 严格模式（不通过则返回错误）
-/review-design docs/04-功能设计/ --strict
+/review-design docs/05-功能设计/ --strict
 
 # 仅输出评审摘要
-/review-design docs/03-模块设计/ --summary
+/review-design docs/04-模块设计/ --summary
 
 # 生成评审报告文件
-/review-design docs/03-模块设计/ --report
+/review-design docs/04-模块设计/ --report
 ```
 
 ## 评审等级
