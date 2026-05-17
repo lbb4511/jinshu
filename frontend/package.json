@@ -1,6 +1,6 @@
 {
   "name": "jinshu-report-frontend",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "锦书企业级报表系统前端",
   "private": true,
   "dependencies": {
