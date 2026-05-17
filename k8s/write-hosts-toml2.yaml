@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: write-hosts-toml2
+spec:
+  hostPID: true
+  containers:
+  - name: writer
+    image: alpine:3.20
+    command:
+    - sh
+    - -c
+    - |
+      mkdir -p /host/var/lib/rancher/k3s/agent/etc/containerd/certs.d/10.43.170.83:3000
+      echo "c2VydmVyID0gImh0dHA6Ly8xMC40My4xNzAuODM6MzAwMC92MiIKY2FwYWJpbGl0aWVzID0gWyJwdWxsIiwgInJlc29sdmUiLCAicHVzaCJdCgpbaG9zdC4iaHR0cDovLzEwLjQzLjE3MC44MzozMDAwL3YyIl0KICBjYXBhYmlsaXRpZXMgPSBbInB1bGwiLCAicmVzb2x2ZSIsICJwdXNoIl0K" | base64 -d > /host/var/lib/rancher/k3s/agent/etc/containerd/certs.d/10.43.170.83:3000/hosts.toml
+      echo "done"
+    volumeMounts:
+    - name: host
+      mountPath: /host
+    securityContext:
+      privileged: true
+  volumes:
+  - name: host
+    hostPath:
+      path: /
+  restartPolicy: Never

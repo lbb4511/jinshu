@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: write-registries
+spec:
+  hostPID: true
+  containers:
+  - name: writer
+    image: alpine:3.20
+    command:
+    - sh
+    - -c
+    - |
+      mkdir -p /host/etc/rancher/k3s
+      printf '%s\n' 'mirrors:' \
+        '  docker.io:' \
+        '    endpoint:' \
+        '      - "https://docker.m.daocloud.io"' \
+        '      - "https://docker.nju.edu.cn"' \
+        '  registry-1.docker.io:' \
+        '    endpoint:' \
+        '      - "https://docker.m.daocloud.io"' \
+        '      - "https://docker.nju.edu.cn"' \
+        '  registry.k8s.io:' \
+        '    endpoint:' \
+        '      - "https://k8s.m.daocloud.io"' \
+        '  "10.43.170.83:3000":' \
+        '    endpoint:' \
+        '      - "http://10.43.170.83:3000"' \
+        'configs:' \
+        '  "10.43.170.83:3000":' \
+        '    tls:' \
+        '      insecure_skip_verify: true' \
+        > /host/etc/rancher/k3s/registries.yaml
+      echo "10.43.170.83 git.obtstar.lan" >> /host/etc/hosts
+      echo "done"
+    volumeMounts:
+    - name: host
+      mountPath: /host
+    securityContext:
+      privileged: true
+  volumes:
+  - name: host
+    hostPath:
+      path: /
+  restartPolicy: Never

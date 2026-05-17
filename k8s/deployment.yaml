@@ -17,8 +17,8 @@ spec:
     spec:
       containers:
       - name: backend
-        image: git.obtstar.lan/admin/jinshu-backend:latest
-        imagePullPolicy: IfNotPresent
+        image: 10.43.170.83:3000/admin/jinshu-backend:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
           name: http
@@ -134,8 +134,8 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: git.obtstar.lan/admin/jinshu-frontend:latest
-        imagePullPolicy: IfNotPresent
+        image: 10.43.170.83:3000/admin/jinshu-frontend:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
           name: http

@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ls-certs
+spec:
+  hostPID: true
+  containers:
+  - name: ls
+    image: alpine:3.20
+    command:
+    - sh
+    - -c
+    - |
+      ls -laR /host/var/lib/rancher/k3s/agent/etc/containerd/certs.d/
+      echo "---"
+      cat /host/var/lib/rancher/k3s/agent/etc/containerd/certs.d/10.43.170.83:3000/hosts.toml 2>&1 || echo "not found"
+    volumeMounts:
+    - name: host
+      mountPath: /host
+    securityContext:
+      privileged: true
+  volumes:
+  - name: host
+    hostPath:
+      path: /
+  restartPolicy: Never

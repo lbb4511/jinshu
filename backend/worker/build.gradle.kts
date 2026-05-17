@@ -5,12 +5,12 @@ plugins {
 
 dependencies {
     implementation(project(":common"))
-    implementation(libs.spring.boot.starter.amqp)
-    implementation(libs.spring.boot.starter.data.redis)
-    implementation(libs.mybatis.spring.boot.starter)
-    implementation(libs.postgresql)
-    implementation(libs.easyexcel)
-    implementation(libs.pdfbox)
+    implementation("org.springframework.boot:spring-boot-starter-amqp")
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.1")
+    implementation("org.postgresql:postgresql:42.7.11")
+    implementation("com.alibaba:easyexcel:4.0.3")
+    implementation("org.apache.pdfbox:pdfbox:3.0.7")
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {

@@ -8,7 +8,7 @@ dependencyManagement {
         mavenBom("org.springframework.boot:spring-boot-dependencies:4.0.6")
     }
     dependencies {
-        dependency("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.5")
+        dependency("org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.1")
         dependency("org.projectlombok:lombok:1.18.46")
     }
 }

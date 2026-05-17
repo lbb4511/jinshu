@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fix-hosts
+spec:
+  hostPID: true
+  containers:
+  - name: fixer
+    image: alpine:3.20
+    command: ["sh", "-c", "echo 127.0.0.1 git.obtstar.lan >> /host/etc/hosts && cat /host/etc/hosts | grep git"]
+    volumeMounts:
+    - name: host
+      mountPath: /host
+    securityContext:
+      privileged: true
+  volumes:
+  - name: host
+    hostPath:
+      path: /
+  restartPolicy: Never
