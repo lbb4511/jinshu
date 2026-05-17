@@ -13,8 +13,9 @@ jobs:
     steps:
       - name: Install Dependencies
         run: |
+          sed -i "s|deb.debian.org|mirrors.tuna.tsinghua.edu.cn|g; s|security.debian.org|mirrors.tuna.tsinghua.edu.cn|g" /etc/apt/sources.list
           apt-get update -qq
-          apt-get install -y -qq git docker.io curl ca-certificates 2>&1 | tail -3
+          apt-get install -y -qq docker.io kubectl 2>&1 | tail -3
 
       - name: Checkout
         run: |
