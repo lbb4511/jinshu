@@ -21,20 +21,20 @@ jobs:
 
       - name: Checkout
         run: |
-          rm -rf /workspace
-          mkdir -p /workspace
-          git clone http://gitea-http.gitea.svc.cluster.local:3000/admin/jinshu.git /workspace
-          cd /workspace
+          rm -rf /workspace/src
+          mkdir -p /workspace/src
+          git clone http://gitea-http.gitea.svc.cluster.local:3000/admin/jinshu.git /workspace/src
+          cd /workspace/src
           git checkout ${{ gitea.sha }}
 
       - name: Docker Login
         run: echo admin123 | docker login $REGISTRY -u admin --password-stdin
 
       - name: Build Backend
-        run: docker build -t $BACKEND_IMAGE:${{ gitea.sha }} -t $BACKEND_IMAGE:latest /workspace/backend
+        run: docker build -t $BACKEND_IMAGE:${{ gitea.sha }} -t $BACKEND_IMAGE:latest /workspace/src/backend
 
       - name: Build Frontend
-        run: docker build -t $FRONTEND_IMAGE:${{ gitea.sha }} -t $FRONTEND_IMAGE:latest /workspace/frontend
+        run: docker build -t $FRONTEND_IMAGE:${{ gitea.sha }} -t $FRONTEND_IMAGE:latest /workspace/src/frontend
 
       - name: Push Images
         run: |
@@ -43,9 +43,9 @@ jobs:
 
       - name: Deploy
         run: |
-          sed -i "s|image: .*jinshu-backend:.*|image: $BACKEND_IMAGE:${{ gitea.sha }}|" /workspace/k8s/deployment.yaml
-          sed -i "s|image: .*jinshu-frontend:.*|image: $FRONTEND_IMAGE:${{ gitea.sha }}|" /workspace/k8s/deployment.yaml
-          kubectl --kubeconfig <(echo "${{ secrets.KUBECONFIG }}") apply -f /workspace/k8s/
+          sed -i "s|image: .*jinshu-backend:.*|image: $BACKEND_IMAGE:${{ gitea.sha }}|" /workspace/src/k8s/deployment.yaml
+          sed -i "s|image: .*jinshu-frontend:.*|image: $FRONTEND_IMAGE:${{ gitea.sha }}|" /workspace/src/k8s/deployment.yaml
+          kubectl --kubeconfig <(echo "${{ secrets.KUBECONFIG }}") apply -f /workspace/src/k8s/
 
       - name: Verify
         run: |
