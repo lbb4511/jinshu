@@ -11,17 +11,29 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Install Dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq git docker.io curl ca-certificates 2>&1 | tail -3
+
+      - name: Checkout
+        run: |
+          mkdir -p /workspace
+          cd /workspace
+          git clone http://gitea-http.gitea.svc.cluster.local:3000/admin/jinshu.git .
+          git checkout ${{ gitea.sha }}
 
       - name: Login to Gitea Container Registry
         run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login $REGISTRY -u $REGISTRY_USER --password-stdin
 
       - name: Build Backend Image
         run: |
+          cd /workspace
           docker build -t $BACKEND_IMAGE:${{ gitea.sha }} -t $BACKEND_IMAGE:latest ./backend
 
       - name: Build Frontend Image
         run: |
+          cd /workspace
           docker build -t $FRONTEND_IMAGE:${{ gitea.sha }} -t $FRONTEND_IMAGE:latest ./frontend
 
       - name: Push Images
@@ -31,20 +43,15 @@ jobs:
           docker push $FRONTEND_IMAGE:${{ gitea.sha }}
           docker push $FRONTEND_IMAGE:latest
 
-      - name: Setup kubectl
-        run: |
-          curl -LO "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-
       - name: Deploy to k3s
         run: |
-          sed -i "s|image: .*jinshu-backend:.*|image: $BACKEND_IMAGE:${{ gitea.sha }}|" k8s/deployment.yaml
-          sed -i "s|image: .*jinshu-frontend:.*|image: $FRONTEND_IMAGE:${{ gitea.sha }}|" k8s/deployment.yaml
-          kubectl apply -f k8s/
+          sed -i "s|image: .*jinshu-backend:.*|image: $BACKEND_IMAGE:${{ gitea.sha }}|" /workspace/k8s/deployment.yaml
+          sed -i "s|image: .*jinshu-frontend:.*|image: $FRONTEND_IMAGE:${{ gitea.sha }}|" /workspace/k8s/deployment.yaml
+          # Use kubectl with embedded kubeconfig
+          kubectl --kubeconfig <(echo "${{ secrets.KUBECONFIG }}") apply -f /workspace/k8s/
 
       - name: Verify Deployment
         run: |
           sleep 10
-          kubectl rollout status deployment/jinshu-backend -n jinshu --timeout=120s
-          kubectl rollout status deployment/jinshu-frontend -n jinshu --timeout=120s
+          kubectl --kubeconfig <(echo "${{ secrets.KUBECONFIG }}") rollout status deployment/jinshu-backend -n jinshu --timeout=120s
+          kubectl --kubeconfig <(echo "${{ secrets.KUBECONFIG }}") rollout status deployment/jinshu-frontend -n jinshu --timeout=120s
