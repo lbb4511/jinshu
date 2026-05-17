@@ -28,7 +28,9 @@ jobs:
           git checkout ${{ gitea.sha }}
 
       - name: Docker Login
-        run: echo admin123 | docker login $REGISTRY -u admin --password-stdin
+        run: |
+          mkdir -p ~/.docker
+          echo "{\"auths\":{\"$REGISTRY\":{\"auth\":\"$(printf admin:admin123 | base64 -w0)\"}}}" > ~/.docker/config.json
 
       - name: Build Backend
         run: docker build -t $BACKEND_IMAGE:${{ gitea.sha }} -t $BACKEND_IMAGE:latest /workspace/src/backend
