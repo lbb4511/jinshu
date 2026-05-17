@@ -1,56 +1,32 @@
-name: Build & Deploy
+name: Deploy
 on: [push]
 
 env:
-  REGISTRY: 10.43.170.83:3000
-  BACKEND_IMAGE: 10.43.170.83:3000/admin/jinshu-backend
-  FRONTEND_IMAGE: 10.43.170.83:3000/admin/jinshu-frontend
-  DOCKER_HOST: tcp://localhost:2375
+  SSH_HOST: 192.168.3.11
+  SSH_USER: dev
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Tools
-        run: |
-          sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
-          apt-get update -qq
-          apt-get install -y -qq docker.io
-          curl -sSL https://mirrors.tuna.tsinghua.edu.cn/kubernetes-release/release/v1.31.0/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl
-          chmod +x /usr/local/bin/kubectl
-
       - name: Checkout
         run: |
           rm -rf /workspace/src
           mkdir -p /workspace/src
           git clone http://gitea-http.gitea.svc.cluster.local:3000/admin/jinshu.git /workspace/src
-          cd /workspace/src
-          git checkout ${{ gitea.sha }}
+          cd /workspace/src && git checkout ${{ gitea.sha }}
 
-      - name: Docker Login
+      - name: Setup SSH
         run: |
-          mkdir -p ~/.docker
-          echo "{\"auths\":{\"$REGISTRY\":{\"auth\":\"$(printf admin:admin123 | base64 -w0)\"}}}" > ~/.docker/config.json
-
-      - name: Build Backend
-        run: docker build -t $BACKEND_IMAGE:${{ gitea.sha }} -t $BACKEND_IMAGE:latest /workspace/src/backend
-
-      - name: Build Frontend
-        run: docker build -t $FRONTEND_IMAGE:${{ gitea.sha }} -t $FRONTEND_IMAGE:latest /workspace/src/frontend
-
-      - name: Push Images
-        run: |
-          docker push $BACKEND_IMAGE:${{ gitea.sha }}
-          docker push $FRONTEND_IMAGE:${{ gitea.sha }}
+          apt-get update -qq && apt-get install -y -qq openssh-client
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts 2>/dev/null
 
       - name: Deploy
         run: |
-          sed -i "s|image: .*jinshu-backend:.*|image: $BACKEND_IMAGE:${{ gitea.sha }}|" /workspace/src/k8s/deployment.yaml
-          sed -i "s|image: .*jinshu-frontend:.*|image: $FRONTEND_IMAGE:${{ gitea.sha }}|" /workspace/src/k8s/deployment.yaml
-          kubectl --kubeconfig <(echo "${{ secrets.KUBECONFIG }}") apply -f /workspace/src/k8s/
-
-      - name: Verify
-        run: |
-          sleep 30
-          kubectl --kubeconfig <(echo "${{ secrets.KUBECONFIG }}") rollout status deployment/jinshu-backend -n jinshu --timeout=120s
-          kubectl --kubeconfig <(echo "${{ secrets.KUBECONFIG }}") rollout status deployment/jinshu-frontend -n jinshu --timeout=60s
+          tar czf - -C /workspace/src . | \
+            ssh -i ~/.ssh/id_ed25519 ${SSH_USER}@${SSH_HOST} \
+              "rm -rf /tmp/jinshu && mkdir -p /tmp/jinshu && tar xzf - -C /tmp/jinshu && \
+               bash ~/scripts/deploy-jinshu.sh ${{ gitea.sha }}"
