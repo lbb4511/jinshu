@@ -13,11 +13,10 @@ jobs:
     steps:
       - name: Install Tools
         run: |
-          curl -fsSL https://dockermirror.com/docker-27.5.1.tgz -o /tmp/docker.tgz || \
-          curl -fsSL https://download.docker.com/linux/static/stable/x86_64/docker-27.5.1.tgz -o /tmp/docker.tgz
-          tar xzf /tmp/docker.tgz -C /usr/local/bin --strip-components=1 docker/docker
-          chmod +x /usr/local/bin/docker
-          curl -sSL --retry 3 https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl
+          sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
+          apt-get update -qq
+          apt-get install -y -qq docker.io
+          curl -sSL https://mirrors.tuna.tsinghua.edu.cn/kubernetes-release/release/v1.31.0/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl
           chmod +x /usr/local/bin/kubectl
 
       - name: Checkout
