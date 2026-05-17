@@ -1,0 +1,165 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jinshu-postgres-init
+  namespace: jinshu
+data:
+  01_init_schema.sql: |
+    -- ============================================================
+    -- 锦书企业级报表系统 - 数据库初始化脚本
+    -- 创建核心表结构
+    -- 注意: 所有业务表包含 tenant_id 字段用于多租户
+    -- ============================================================
+
+    -- 租户表
+    CREATE TABLE IF NOT EXISTS tenant (
+        id BIGSERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        code VARCHAR(50) NOT NULL UNIQUE,
+        status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+        contact_name VARCHAR(100),
+        contact_email VARCHAR(200),
+        max_users INTEGER NOT NULL DEFAULT 100,
+        max_storage_mb INTEGER NOT NULL DEFAULT 10240,
+        config JSONB DEFAULT '{}',
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- 用户表
+    CREATE TABLE IF NOT EXISTS users (
+        id BIGSERIAL PRIMARY KEY,
+        tenant_id BIGINT NOT NULL REFERENCES tenant(id),
+        username VARCHAR(100) NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        email VARCHAR(200),
+        phone VARCHAR(20),
+        role VARCHAR(20) NOT NULL DEFAULT 'USER',
+        status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+        last_login_at TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(tenant_id, username)
+    );
+
+    -- 报表元数据表
+    CREATE TABLE IF NOT EXISTS report_metadata (
+        id BIGSERIAL PRIMARY KEY,
+        tenant_id BIGINT NOT NULL REFERENCES tenant(id),
+        name VARCHAR(200) NOT NULL,
+        description TEXT,
+        category VARCHAR(100),
+        schema_version INTEGER NOT NULL DEFAULT 1,
+        columns_meta JSONB DEFAULT '[]',
+        status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
+        created_by BIGINT REFERENCES users(id),
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- 报表数据表（宽表）
+    CREATE TABLE IF NOT EXISTS report_data (
+        id BIGSERIAL PRIMARY KEY,
+        tenant_id BIGINT NOT NULL REFERENCES tenant(id),
+        report_id BIGINT NOT NULL REFERENCES report_metadata(id),
+        row_index INTEGER NOT NULL,
+        data_json JSONB NOT NULL DEFAULT '{}',
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(tenant_id, report_id, row_index)
+    );
+
+    -- 工作流状态表
+    CREATE TABLE IF NOT EXISTS report_workflows (
+        id BIGSERIAL PRIMARY KEY,
+        tenant_id BIGINT NOT NULL REFERENCES tenant(id),
+        report_id BIGINT NOT NULL REFERENCES report_metadata(id),
+        status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+        current_step VARCHAR(50),
+        assignee_id BIGINT REFERENCES users(id),
+        remark TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- 审计日志表（禁止 UPDATE/DELETE）
+    CREATE TABLE IF NOT EXISTS audit_log (
+        id BIGSERIAL PRIMARY KEY,
+        tenant_id BIGINT NOT NULL REFERENCES tenant(id),
+        user_id BIGINT REFERENCES users(id),
+        operation VARCHAR(50) NOT NULL,
+        target_type VARCHAR(50),
+        target_id BIGINT,
+        detail JSONB DEFAULT '{}',
+        ip_address VARCHAR(45),
+        log_hash VARCHAR(64) NOT NULL,
+        prev_hash VARCHAR(64),
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- 审计日志哈希根表
+    CREATE TABLE IF NOT EXISTS audit_root_hash (
+        id BIGSERIAL PRIMARY KEY,
+        tenant_id BIGINT NOT NULL REFERENCES tenant(id),
+        hour_start TIMESTAMP NOT NULL,
+        root_hash VARCHAR(64) NOT NULL,
+        record_count INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(tenant_id, hour_start)
+    );
+
+    -- 数据源配置表
+    CREATE TABLE IF NOT EXISTS data_source (
+        id BIGSERIAL PRIMARY KEY,
+        tenant_id BIGINT NOT NULL REFERENCES tenant(id),
+        name VARCHAR(200) NOT NULL,
+        type VARCHAR(50) NOT NULL DEFAULT 'JDBC',
+        connection_config JSONB NOT NULL DEFAULT '{}',
+        status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- 任务表
+    CREATE TABLE IF NOT EXISTS task (
+        id BIGSERIAL PRIMARY KEY,
+        tenant_id BIGINT NOT NULL REFERENCES tenant(id),
+        type VARCHAR(50) NOT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+        progress DECIMAL(5,2) DEFAULT 0.00,
+        params JSONB DEFAULT '{}',
+        result JSONB DEFAULT '{}',
+        error_message TEXT,
+        started_at TIMESTAMP,
+        completed_at TIMESTAMP,
+        created_by BIGINT REFERENCES users(id),
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- 审计日志防篡改触发器
+    CREATE OR REPLACE FUNCTION prevent_audit_log_modification()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        RAISE EXCEPTION 'audit_log table is append-only, modification is not allowed';
+    END;
+    $$ LANGUAGE plpgsql;
+
+    DROP TRIGGER IF EXISTS trg_prevent_audit_log_update ON audit_log;
+    CREATE TRIGGER trg_prevent_audit_log_update
+        BEFORE UPDATE ON audit_log
+        FOR EACH ROW EXECUTE FUNCTION prevent_audit_log_modification();
+
+    DROP TRIGGER IF EXISTS trg_prevent_audit_log_delete ON audit_log;
+    CREATE TRIGGER trg_prevent_audit_log_delete
+        BEFORE DELETE ON audit_log
+        FOR EACH ROW EXECUTE FUNCTION prevent_audit_log_modification();
+
+    -- 索引
+    CREATE INDEX IF NOT EXISTS idx_users_tenant ON users(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_report_metadata_tenant ON report_metadata(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_report_data_tenant_report ON report_data(tenant_id, report_id);
+    CREATE INDEX IF NOT EXISTS idx_report_workflows_tenant ON report_workflows(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_audit_log_tenant_created ON audit_log(tenant_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_audit_log_hash ON audit_log(log_hash);
+    CREATE INDEX IF NOT EXISTS idx_data_source_tenant ON data_source(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_task_tenant ON task(tenant_id);

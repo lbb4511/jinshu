@@ -1,0 +1,50 @@
+name: Build & Deploy
+on: [push]
+
+env:
+  REGISTRY: git.obtstar.lan
+  REGISTRY_USER: admin
+  BACKEND_IMAGE: git.obtstar.lan/admin/jinshu-backend
+  FRONTEND_IMAGE: git.obtstar.lan/admin/jinshu-frontend
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Gitea Container Registry
+        run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login $REGISTRY -u $REGISTRY_USER --password-stdin
+
+      - name: Build Backend Image
+        run: |
+          docker build -t $BACKEND_IMAGE:${{ gitea.sha }} -t $BACKEND_IMAGE:latest ./backend
+
+      - name: Build Frontend Image
+        run: |
+          docker build -t $FRONTEND_IMAGE:${{ gitea.sha }} -t $FRONTEND_IMAGE:latest ./frontend
+
+      - name: Push Images
+        run: |
+          docker push $BACKEND_IMAGE:${{ gitea.sha }}
+          docker push $BACKEND_IMAGE:latest
+          docker push $FRONTEND_IMAGE:${{ gitea.sha }}
+          docker push $FRONTEND_IMAGE:latest
+
+      - name: Setup kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+
+      - name: Deploy to k3s
+        run: |
+          sed -i "s|image: .*jinshu-backend:.*|image: $BACKEND_IMAGE:${{ gitea.sha }}|" k8s/deployment.yaml
+          sed -i "s|image: .*jinshu-frontend:.*|image: $FRONTEND_IMAGE:${{ gitea.sha }}|" k8s/deployment.yaml
+          kubectl apply -f k8s/
+
+      - name: Verify Deployment
+        run: |
+          sleep 10
+          kubectl rollout status deployment/jinshu-backend -n jinshu --timeout=120s
+          kubectl rollout status deployment/jinshu-frontend -n jinshu --timeout=120s

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jinshu-config
+  namespace: jinshu
+data:
+  db_host: "jinshu-postgres.jinshu.svc.cluster.local"
+  db_port: "5432"
+  db_name: "jinshu"
+  db_user: "jinshu"
+  redis_host: "jinshu-redis.jinshu.svc.cluster.local"
+  redis_port: "6379"
+  rabbitmq_host: "jinshu-rabbitmq.jinshu.svc.cluster.local"
+  rabbitmq_port: "5672"
+  rabbitmq_user: "jinshu"
+  jinshu_file_base_path: "/data/jinshu"

@@ -1,0 +1,13 @@
+.gradle/
+build/
+target/
+*.jar
+.gradle/
+gradle/
+!gradlew
+!gradlew.bat
+!gradle/wrapper/
+.idea/
+.vscode/
+*.iml
+.DS_Store

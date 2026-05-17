@@ -1,0 +1,166 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: jinshu-postgres
+  namespace: jinshu
+spec:
+  serviceName: jinshu-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jinshu-postgres
+  template:
+    metadata:
+      labels:
+        app: jinshu-postgres
+    spec:
+      containers:
+      - name: postgres
+        image: docker.io/postgres:16-alpine
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "jinshu"
+        - name: POSTGRES_USER
+          value: "jinshu"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: jinshu-secret
+              key: db_password
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        - name: init-sql
+          mountPath: /docker-entrypoint-initdb.d
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+      volumes:
+      - name: init-sql
+        configMap:
+          name: jinshu-postgres-init
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jinshu-postgres
+  namespace: jinshu
+spec:
+  selector:
+    app: jinshu-postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jinshu-redis
+  namespace: jinshu
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jinshu-redis
+  template:
+    metadata:
+      labels:
+        app: jinshu-redis
+    spec:
+      containers:
+      - name: redis
+        image: docker.io/redis:7.4-alpine
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 6379
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jinshu-redis
+  namespace: jinshu
+spec:
+  selector:
+    app: jinshu-redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jinshu-rabbitmq
+  namespace: jinshu
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jinshu-rabbitmq
+  template:
+    metadata:
+      labels:
+        app: jinshu-rabbitmq
+    spec:
+      containers:
+      - name: rabbitmq
+        image: docker.io/rabbitmq:3.13-management-alpine
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5672
+          name: amqp
+        - containerPort: 15672
+          name: management
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: "jinshu"
+        - name: RABBITMQ_DEFAULT_PASS
+          valueFrom:
+            secretKeyRef:
+              name: jinshu-secret
+              key: rabbitmq_password
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jinshu-rabbitmq
+  namespace: jinshu
+spec:
+  selector:
+    app: jinshu-rabbitmq
+  ports:
+  - name: amqp
+    port: 5672
+    targetPort: 5672
+  - name: management
+    port: 15672
+    targetPort: 15672

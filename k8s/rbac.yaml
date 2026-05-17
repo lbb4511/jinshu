@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jinshu-ci
+  namespace: jinshu
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: jinshu-ci
+  namespace: jinshu
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments", "statefulsets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["services", "configmaps", "secrets", "persistentvolumeclaims", "pods"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: jinshu-ci
+  namespace: jinshu
+subjects:
+- kind: ServiceAccount
+  name: jinshu-ci
+  namespace: jinshu
+roleRef:
+  kind: Role
+  name: jinshu-ci
+  apiGroup: rbac.authorization.k8s.io
+---
+# 允许 gitea 命名空间下的默认 SA（Gitea Runner）部署 jinshu 资源
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: jinshu-ci-runner
+  namespace: jinshu
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: gitea
+roleRef:
+  kind: Role
+  name: jinshu-ci
+  apiGroup: rbac.authorization.k8s.io
