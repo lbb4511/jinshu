@@ -21,9 +21,10 @@ jobs:
 
       - name: Checkout
         run: |
+          rm -rf /workspace
           mkdir -p /workspace
+          git clone http://gitea-http.gitea.svc.cluster.local:3000/admin/jinshu.git /workspace
           cd /workspace
-          git clone http://gitea-http.gitea.svc.cluster.local:3000/admin/jinshu.git .
           git checkout ${{ gitea.sha }}
 
       - name: Docker Login
