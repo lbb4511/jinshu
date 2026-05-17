@@ -12,15 +12,15 @@ import java.util.List;
 @Mapper
 public interface ReportMapper {
 
-    Report selectById(@Param("id") Long id);
+    Report selectById(@Param("id") Long id, @Param("tenantId") Long tenantId);
 
-    List<Report> selectByReportId(@Param("reportId") Long reportId);
+    List<Report> selectByReportId(@Param("reportId") Long reportId, @Param("tenantId") Long tenantId);
 
-    List<Report> selectList();
+    List<Report> selectList(@Param("tenantId") Long tenantId);
 
     int insert(Report report);
 
     int update(Report report);
 
-    int deleteById(@Param("id") Long id);
+    int deleteById(@Param("id") Long id, @Param("tenantId") Long tenantId);
 }

@@ -66,4 +66,14 @@ public class Report {
      * 更新时间
      */
     private LocalDateTime updatedAt;
+
+    /**
+     * 软删除标记
+     */
+    private Boolean isDeleted;
+
+    /**
+     * 删除时间
+     */
+    private LocalDateTime deletedAt;
 }

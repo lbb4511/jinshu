@@ -4,15 +4,16 @@
 <mapper namespace="com.jinshu.api.dao.ReportMapper">
 
     <select id="selectById" resultType="com.jinshu.common.entity.Report">
-        SELECT * FROM report_metadata WHERE id = #{id}
+        SELECT * FROM report_metadata WHERE id = #{id} AND tenant_id = #{tenantId} AND is_deleted = false
     </select>
 
     <select id="selectByReportId" resultType="com.jinshu.common.entity.Report">
-        SELECT * FROM report_metadata WHERE id = #{reportId}
+        SELECT * FROM report_metadata WHERE id = #{reportId} AND tenant_id = #{tenantId} AND is_deleted = false
     </select>
 
     <select id="selectList" resultType="com.jinshu.common.entity.Report">
         SELECT * FROM report_metadata
+        WHERE tenant_id = #{tenantId} AND is_deleted = false
         ORDER BY created_at DESC
     </select>
 
@@ -25,11 +26,13 @@
         UPDATE report_metadata
         SET name = #{name},
             description = #{description}
-        WHERE id = #{id}
+        WHERE id = #{id} AND tenant_id = #{tenantId} AND is_deleted = false
     </update>
 
-    <delete id="deleteById">
-        DELETE FROM report_metadata WHERE id = #{id}
-    </delete>
+    <update id="deleteById">
+        UPDATE report_metadata
+        SET is_deleted = true, deleted_at = NOW()
+        WHERE id = #{id} AND tenant_id = #{tenantId} AND is_deleted = false
+    </update>
 
 </mapper>

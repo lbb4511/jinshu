@@ -2,9 +2,9 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License">
-  <img src="https://img.shields.io/badge/Java-17-orange.svg" alt="Java">
-  <img src="https://img.shields.io/badge/React-18-blue.svg" alt="React">
-  <img src="https://img.shields.io/badge/PostgreSQL-15-blue.svg" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/Java-21-orange.svg" alt="Java">
+  <img src="https://img.shields.io/badge/React-19-blue.svg" alt="React">
+  <img src="https://img.shields.io/badge/PostgreSQL-16-blue.svg" alt="PostgreSQL">
 </p>
 
 ## 项目简介
@@ -25,7 +25,7 @@
 | 层级 | 技术选型 |
 |-----|---------|
 | **前端** | React 19, PrimeReact, ECharts |
-| **后端** | Spring Boot 3.3, Spring Batch, Spring Security, MyBatis |
+| **后端** | Spring Boot 4.0, Spring Batch, Spring Security, MyBatis |
 | **AI/数据科学** | Python 3.12+（LLM 报表生成、Pandas/NumPy 分析、运维脚本） |
 | **高性能/系统级** | Rust 1.80+（高性能 Excel 解析、WASM 前端组件、CLI 工具） |
 | **数据库** | PostgreSQL 16 |
@@ -56,12 +56,12 @@ psql -U postgres -f sql/ddl/init_schema.sql
 
 # 3. 启动后端
 cd backend
-./mvnw spring-boot:run
+./gradlew api:bootRun
 
 # 4. 启动前端
 cd frontend
-npm install
-npm start
+pnpm install
+pnpm dev
 ```
 
 ## 项目结构
@@ -69,7 +69,10 @@ npm start
 ```
 jinshu/
 ├── docs/                    # 项目文档
-│   └── 01-立项与设计/      # 需求文档、概要设计、详细设计
+│   ├── 01-立项与架构/      # 需求文档、概要设计、技术选型
+│   ├── 02-流程与规范/      # 基础规范、AI开发指南、社区协作
+│   ├── 03-安全与合规/      # 安全策略、JWT认证、加密脱敏、权限矩阵
+│   └── 04-模块设计/        # 各业务模块详细设计文档
 ├── backend/                 # Java后端服务
 │   └── src/main/java/com/jinshu/
 │       ├── controller/      # 控制层
@@ -98,7 +101,7 @@ jinshu/
 └── README.md                # 本文件
 ```
 
-## 文档索引（20+ 份文档）
+## 文档索引（25+ 份文档）
 
 | 分类 | 文档 | 说明 |
 |-----|------|------|
@@ -109,15 +112,17 @@ jinshu/
 | | [多租户架构设计](docs/01-立项与架构/04.多租户架构设计.md) | SQL自动注入、@SkipTenantFilter 用法 |
 | | [整体架构分层设计](docs/01-立项与架构/05.整体架构分层设计.md) | Controller/Service/DAO 职责边界 |
 | | [数据库架构设计](docs/01-立项与架构/06.数据库架构设计.md) | 命名规范、表清单、索引原则、分区策略 |
-| 🟡 流程与规范 | [设计文档模板](docs/02-流程与规范/01.设计文档模板.md) | 11个必填章节，写完才可以编码 |
-| | [CodeReview 指南](docs/02-流程与规范/02.CodeReview指南.md) | 3级评审标准 + Checklist |
-| | [开源协议说明](docs/02-流程与规范/03.开源协议说明.md) | 禁止 GPL / 禁止商业付费代码 |
-| | [项目命名规约](docs/02-流程与规范/04.项目命名规约.md) | 类名/方法名/数据库/API/Git 完整规范 |
-| | [统一返回与异常处理设计](docs/02-流程与规范/05.统一返回与异常处理设计.md) | Result 五件套规范 |
+| 🟡 流程与规范 | [设计文档模板](docs/02-流程与规范/01-个人+AI开发指南/01.设计文档模板.md) | 11个必填章节，写完才可以编码 |
+| | [CodeReview 指南](docs/02-流程与规范/02-社区协作指南/01.CodeReview指南.md) | 3级评审标准 + Checklist |
+| | [开源协议说明](docs/02-流程与规范/00-基础规范/01.开源协议说明.md) | 禁止 GPL / 禁止商业付费代码 |
+| | [项目命名规约](docs/02-流程与规范/00-基础规范/02.项目命名规约.md) | 类名/方法名/数据库/API/Git 完整规范 |
+| | [统一返回与异常处理设计](docs/02-流程与规范/00-基础规范/03.统一返回与异常处理设计.md) | Result 五件套规范 |
 | 🟢 模块设计 | [报表导入模块设计](docs/04-模块设计/01.报表导入模块设计.md) | 100万行导入、EasyExcel 流式读取 |
 | | [审计日志设计](docs/04-模块设计/02.审计日志设计.md) | 防篡改、哈希链、等保三级 |
 | 🔐 安全与合规 | [安全原则与红线](docs/03-安全与合规/README.md) | 7条安全红线、事故响应流程 |
-| | [安全与合规架构设计](docs/03-安全与合规/01.架构设计.md) | 字段级加密、灾备 RPO/RTO |
+| | [JWT认证授权设计](docs/03-安全与合规/03.JWT认证授权设计.md) | Token 签发/刷新/吊销 |
+| | [数据加密标准](docs/03-安全与合规/04.数据加密标准.md) | AES-256-GCM 字段级加密、脱敏 |
+| | [权限控制矩阵](docs/03-安全与合规/06.权限控制矩阵.md) | 5角色 × 12模块 RBAC 矩阵 |
 ## 性能基准
 
 | 场景 | 指标 |

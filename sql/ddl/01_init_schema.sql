@@ -1,6 +1,6 @@
 -- =====================================================
 -- 锦书企业级报表系统 - 数据库初始化脚本
--- 数据库版本: PostgreSQL 15+
+-- 数据库版本: PostgreSQL 16+
 -- 创建日期: 2026-05-12
 -- =====================================================
 
@@ -53,10 +53,13 @@ CREATE TABLE report_metadata (
     template_config   JSONB,
     created_by      BIGINT,
     created_at      TIMESTAMP DEFAULT NOW(),
-    updated_at      TIMESTAMP DEFAULT NOW()
+    updated_at      TIMESTAMP DEFAULT NOW(),
+    is_deleted      BOOLEAN NOT NULL DEFAULT false,
+    deleted_at      TIMESTAMP
 );
 
 CREATE INDEX idx_report_metadata_tenant ON report_metadata(tenant_id);
+CREATE INDEX idx_report_metadata_not_deleted ON report_metadata(tenant_id, is_deleted) WHERE is_deleted = false;
 
 -- =====================================================
 -- 3. 报表宽表（核心数据表
