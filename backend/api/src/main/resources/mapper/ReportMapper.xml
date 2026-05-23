@@ -1,38 +1,76 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.jinshu.api.dao.ReportMapper">
 
-    <select id="selectById" resultType="com.jinshu.common.entity.Report">
-        SELECT * FROM report_metadata WHERE id = #{id} AND tenant_id = #{tenantId} AND is_deleted = false
+    <resultMap id="BaseResultMap" type="com.jinshu.common.entity.Report">
+        <id column="id" property="id"/>
+        <result column="tenant_id" property="tenantId"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="schema_version" property="schemaVersion"/>
+        <result column="data_source_id" property="dataSourceId"/>
+        <result column="template_config" property="templateConfig"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="deleted_at" property="deletedAt"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, tenant_id, name, description, schema_version, data_source_id, template_config,
+               created_by, created_at, updated_at, is_deleted, deleted_at, status
+        FROM report_metadata
+        WHERE id = #{id} AND is_deleted = false
     </select>
 
-    <select id="selectByReportId" resultType="com.jinshu.common.entity.Report">
-        SELECT * FROM report_metadata WHERE id = #{reportId} AND tenant_id = #{tenantId} AND is_deleted = false
-    </select>
-
-    <select id="selectList" resultType="com.jinshu.common.entity.Report">
-        SELECT * FROM report_metadata
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT id, tenant_id, name, description, schema_version, data_source_id, template_config,
+               created_by, created_at, updated_at, is_deleted, deleted_at, status
+        FROM report_metadata
         WHERE tenant_id = #{tenantId} AND is_deleted = false
+        <if test="name != null">
+            AND name LIKE '%' || #{name} || '%'
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
         ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
     </select>
 
-    <insert id="insert">
-        INSERT INTO report_metadata (tenant_id, name, description, schema_version, created_by)
-        VALUES (#{tenantId}, #{name}, #{description}, #{schemaVersion}, #{createdBy})
+    <select id="countList" resultType="long">
+        SELECT COUNT(*)
+        FROM report_metadata
+        WHERE tenant_id = #{tenantId} AND is_deleted = false
+        <if test="name != null">
+            AND name LIKE '%' || #{name} || '%'
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO report_metadata (tenant_id, name, description, schema_version, data_source_id,
+                                    template_config, created_by, status, is_deleted, created_at, updated_at)
+        VALUES (#{tenantId}, #{name}, #{description}, #{schemaVersion}, #{dataSourceId},
+                #{templateConfig}, #{createdBy}, #{status}, #{isDeleted}, #{createdAt}, #{updatedAt})
     </insert>
 
     <update id="update">
         UPDATE report_metadata
         SET name = #{name},
-            description = #{description}
-        WHERE id = #{id} AND tenant_id = #{tenantId} AND is_deleted = false
-    </update>
-
-    <update id="deleteById">
-        UPDATE report_metadata
-        SET is_deleted = true, deleted_at = NOW()
-        WHERE id = #{id} AND tenant_id = #{tenantId} AND is_deleted = false
+            description = #{description},
+            schema_version = #{schemaVersion},
+            data_source_id = #{dataSourceId},
+            template_config = #{templateConfig},
+            status = #{status},
+            updated_at = #{updatedAt},
+            is_deleted = #{isDeleted},
+            deleted_at = #{deletedAt}
+        WHERE id = #{id}
     </update>
 
 </mapper>

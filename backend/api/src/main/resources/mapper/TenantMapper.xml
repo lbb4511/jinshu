@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinshu.api.dao.TenantMapper">
+
+    <resultMap id="BaseResultMap" type="com.jinshu.common.entity.Tenant">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="status" property="status"/>
+        <result column="quota_config" property="quotaConfig"/>
+        <result column="description" property="description"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, name, code, status, quota_config, description, created_at, updated_at
+        FROM tenant
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByCode" resultMap="BaseResultMap">
+        SELECT id, name, code, status, quota_config, description, created_at, updated_at
+        FROM tenant
+        WHERE code = #{code}
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT id, name, code, status, quota_config, description, created_at, updated_at
+        FROM tenant
+        WHERE 1=1
+        <if test="name != null">
+            AND name LIKE '%' || #{name} || '%'
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(*)
+        FROM tenant
+        WHERE 1=1
+        <if test="name != null">
+            AND name LIKE '%' || #{name} || '%'
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tenant (name, code, status, quota_config, description, created_at, updated_at)
+        VALUES (#{name}, #{code}, #{status}, #{quotaConfig}, #{description}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update">
+        UPDATE tenant
+        SET name = #{name},
+            code = #{code},
+            status = #{status},
+            quota_config = #{quotaConfig},
+            description = #{description},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinshu.api.dao.ReportWorkflowMapper">
+
+    <resultMap id="BaseResultMap" type="com.jinshu.common.entity.ReportWorkflow">
+        <id column="id" property="id"/>
+        <result column="report_id" property="reportId"/>
+        <result column="tenant_id" property="tenantId"/>
+        <result column="status" property="status"/>
+        <result column="reviewed_by" property="reviewedBy"/>
+        <result column="review_comment" property="reviewComment"/>
+        <result column="reviewed_at" property="reviewedAt"/>
+        <result column="operation" property="operation"/>
+        <result column="operator_id" property="operatorId"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <select id="selectCurrentByReportId" resultMap="BaseResultMap">
+        SELECT id, report_id, tenant_id, status, reviewed_by, review_comment, reviewed_at,
+               operation, operator_id, created_at
+        FROM report_workflows
+        WHERE report_id = #{reportId}
+        ORDER BY created_at DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectByReportId" resultMap="BaseResultMap">
+        SELECT id, report_id, tenant_id, status, reviewed_by, review_comment, reviewed_at,
+               operation, operator_id, created_at
+        FROM report_workflows
+        WHERE report_id = #{reportId}
+        ORDER BY created_at ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO report_workflows (report_id, tenant_id, status, reviewed_by, review_comment,
+                                     reviewed_at, operation, operator_id, created_at)
+        VALUES (#{reportId}, #{tenantId}, #{status}, #{reviewedBy}, #{reviewComment},
+                #{reviewedAt}, #{operation}, #{operatorId}, #{createdAt})
+    </insert>
+
+    <update id="update">
+        UPDATE report_workflows
+        SET status = #{status},
+            reviewed_by = #{reviewedBy},
+            review_comment = #{reviewComment},
+            reviewed_at = #{reviewedAt}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

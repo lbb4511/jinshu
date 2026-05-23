@@ -93,7 +93,37 @@ public enum ErrorCode {
     /**
      * 数据源连接失败
      */
-    DATA_SOURCE_CONNECT_FAILED(5001, "数据源连接失败");
+    DATA_SOURCE_CONNECT_FAILED(5001, "数据源连接失败"),
+
+    /**
+     * 账号已锁定
+     */
+    ACCOUNT_LOCKED(1004, "账号已锁定，请15分钟后重试"),
+
+    /**
+     * 用户已禁用
+     */
+    USER_DISABLED(1005, "用户已被禁用，请联系管理员"),
+
+    /**
+     * 租户已禁用
+     */
+    TENANT_DISABLED(1006, "租户已被禁用"),
+
+    /**
+     * Token已过期
+     */
+    TOKEN_EXPIRED(401, "Token已过期"),
+
+    /**
+     * Token无效
+     */
+    TOKEN_INVALID(401, "Token无效"),
+
+    /**
+     * Refresh Token已失效
+     */
+    REFRESH_TOKEN_INVALID(401, "Refresh Token已失效，请重新登录");
 
     /**
      * 错误码

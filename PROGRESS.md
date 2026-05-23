@@ -1,10 +1,10 @@
 # 锦书企业级报表系统 - 任务进度
 
-> 版本: 0.1.0 | 更新日期: 2026-05-18
+> 版本: 0.1.0 | 更新日期: 2026-05-24
 
 ---
 
-## 一、设计 (59/81 已完成，73%)
+## 一、设计 (61/81 已完成，75%)
 
 ---
 
@@ -115,14 +115,14 @@
 
 ---
 
-### 1.6 运维与部署 — 2/9 🔶 进行中
+### 1.6 运维与部署 — 4/9 🔶 进行中
 
 | # | 文档 | 优先级 | 状态 | 说明 |
 |---|------|--------|------|------|
 | 61 | `01.线上故障处理流程.md` | P0 | ✅ | 故障严重度分级（P0/P1/P2）、5 步标准处理流程（发现→确认→止损→根因→复盘）、回滚流程、故障沟通机制、处理清单（335 行） |
 | 62 | `02.可观测性设计.md` | P0 | ✅ | Metrics（业务+系统指标/Prometheus/Grafana）、Tracing（TraceId 全链路传播 HTTP/MQ/JDBC/OpenTelemetry）、Logging（结构化字段/级别规范/Logback）（962 行） |
-| 63 | K3s 部署指引 | P0 | ❌ | 集群搭建步骤、节点规划、网络配置、存储卷配置、Ingress 配置 |
-| 64 | 数据库运维手册 | P0 | ❌ | 备份恢复操作、慢查询分析、索引维护、连接池调优、版本升级 |
+| 63 | `03.K3s部署指引.md` | P0 | ✅ | K3s 集群搭建（单节点/HA）、基础设施部署、应用部署、Ingress/TLS、HPA、CI/CD、备份恢复、生产检查清单 |
+| 64 | `04.数据库运维手册.md` | P0 | ✅ | 用户权限管理、备份恢复（pg_dump/pg_basebackup/PITR）、监控告警、性能调优、分区归档、迁移升级、故障处理 |
 | 65 | 监控与告警配置 | P1 | ❌ | Prometheus 采集规则、Grafana 仪表盘 JSON、AlertManager 告警规则 |
 | 66 | 日志收集配置 | P1 | ❌ | ELK/Loki 部署配置、日志采集 Pipeline、索引策略、保留策略 |
 | 67 | 备份与恢复方案 | P1 | ❌ | 全量/增量备份策略、PITR 时间点恢复、异地容灾、恢复演练 |
@@ -172,17 +172,17 @@
 - [x] 健康检查 API (`/api/health`、`/api/ready`、`/api/live`)
 - [x] ReportMapper + XML (基础 CRUD 骨架)
 
-### 2.2 后端核心业务 🔶 进行中
+### 2.2 后端核心业务 ✅ 已完成
 
 - [x] 基础设施 Docker Compose (PostgreSQL 16 + Redis 7.4 + RabbitMQ 3.13)
-- [ ] JWT 认证与授权 (设计已完成，SecurityConfig 目前简化禁用)
-- [ ] TenantInterceptor 启用 (代码已存在，暂时禁用)
-- [ ] AuditLogAspect 实现 (aspect/ 目录为空)
-- [ ] 租户 CRUD (TenantController + TenantService)
-- [ ] 用户 CRUD (UserController + UserService)
-- [ ] 报表元数据 CRUD (ReportController + ReportService)
-- [ ] 数据源配置 CRUD (DataSourceController + DataSourceService)
-- [ ] 任务管理 API (TaskController + TaskService)
+- [x] JWT 认证与授权 (JwtTokenProvider + JwtAuthenticationFilter + AuthController)
+- [x] TenantInterceptor 启用 (MyBatis 插件，自动注入 tenant_id)
+- [x] AuditLogAspect 实现 (@AuditLog 注解 + AOP + BlockingQueue)
+- [x] 租户 CRUD (TenantController + TenantService)
+- [x] 用户 CRUD (UserController + UserService)
+- [x] 报表元数据 CRUD + 状态机 (ReportController + ReportService)
+- [x] 数据源配置 CRUD + 连接测试 (DataSourceController + DataSourceService)
+- [x] 任务管理 API (TaskController + TaskService)
 
 ### 2.3 报表导入模块 (batch/) ❌ 未开始
 

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinshu.api.dao.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.jinshu.common.entity.User">
+        <id column="id" property="id"/>
+        <result column="tenant_id" property="tenantId"/>
+        <result column="username" property="username"/>
+        <result column="password_hash" property="passwordHash"/>
+        <result column="display_name" property="displayName"/>
+        <result column="email" property="email"/>
+        <result column="role" property="role"/>
+        <result column="status" property="status"/>
+        <result column="login_fail_count" property="loginFailCount"/>
+        <result column="locked_until" property="lockedUntil"/>
+        <result column="last_login_at" property="lastLoginAt"/>
+        <result column="last_login_ip" property="lastLoginIp"/>
+        <result column="password_updated_at" property="passwordUpdatedAt"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="selectByUsername" resultMap="BaseResultMap">
+        SELECT id, tenant_id, username, password_hash, display_name, email, role, status,
+               login_fail_count, locked_until, last_login_at, last_login_ip, password_updated_at,
+               created_at, updated_at
+        FROM users
+        WHERE username = #{username}
+    </select>
+
+    <select id="selectByUsernameAndTenantId" resultMap="BaseResultMap">
+        SELECT id, tenant_id, username, password_hash, display_name, email, role, status,
+               login_fail_count, locked_until, last_login_at, last_login_ip, password_updated_at,
+               created_at, updated_at
+        FROM users
+        WHERE username = #{username} AND tenant_id = #{tenantId}
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, tenant_id, username, password_hash, display_name, email, role, status,
+               login_fail_count, locked_until, last_login_at, last_login_ip, password_updated_at,
+               created_at, updated_at
+        FROM users
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT id, tenant_id, username, password_hash, display_name, email, role, status,
+               login_fail_count, locked_until, last_login_at, last_login_ip, password_updated_at,
+               created_at, updated_at
+        FROM users
+        WHERE tenant_id = #{tenantId}
+        <if test="username != null">
+            AND username LIKE '%' || #{username} || '%'
+        </if>
+        <if test="role != null">
+            AND role = #{role}
+        </if>
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(*)
+        FROM users
+        WHERE tenant_id = #{tenantId}
+        <if test="username != null">
+            AND username LIKE '%' || #{username} || '%'
+        </if>
+        <if test="role != null">
+            AND role = #{role}
+        </if>
+    </select>
+
+    <select id="countByTenantId" resultType="long">
+        SELECT COUNT(*)
+        FROM users
+        WHERE tenant_id = #{tenantId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO users (tenant_id, username, password_hash, display_name, email, role, status,
+                          login_fail_count, created_at, updated_at, password_updated_at)
+        VALUES (#{tenantId}, #{username}, #{passwordHash}, #{displayName}, #{email}, #{role}, #{status},
+                #{loginFailCount}, #{createdAt}, #{updatedAt}, #{passwordUpdatedAt})
+    </insert>
+
+    <update id="update">
+        UPDATE users
+        SET tenant_id = #{tenantId},
+            username = #{username},
+            password_hash = #{passwordHash},
+            display_name = #{displayName},
+            email = #{email},
+            role = #{role},
+            status = #{status},
+            login_fail_count = #{loginFailCount},
+            locked_until = #{lockedUntil},
+            last_login_at = #{lastLoginAt},
+            last_login_ip = #{lastLoginIp},
+            password_updated_at = #{passwordUpdatedAt},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

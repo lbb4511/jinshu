@@ -60,6 +60,10 @@ server:
 
 # 锦书系统自定义配置
 jinshu:
+  jwt:
+    secret: ${JINSHU_JWT_SECRET:defaultSecretKeyForDevelopmentOnlyChangeInProduction12345}
+    access-expiration: 1800000
+    refresh-expiration: 604800000
   tenant:
     enabled: true              # 启用多租户
   audit:

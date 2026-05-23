@@ -26,6 +26,11 @@ public class UserContext {
     private static final ThreadLocal<String> USERNAME_HOLDER = new ThreadLocal<>();
 
     /**
+     * 角色存储
+     */
+    private static final ThreadLocal<String> ROLE_HOLDER = new ThreadLocal<>();
+
+    /**
      * 私有构造函数，防止实例化
      */
     private UserContext() {
@@ -68,6 +73,24 @@ public class UserContext {
     }
 
     /**
+     * 设置当前用户角色
+     *
+     * @param role 角色
+     */
+    public static void setRole(String role) {
+        ROLE_HOLDER.set(role);
+    }
+
+    /**
+     * 获取当前用户角色
+     *
+     * @return 角色
+     */
+    public static String getRole() {
+        return ROLE_HOLDER.get();
+    }
+
+    /**
      * 清除当前用户信息
      *
      * 防止内存泄漏，必须在请求结束时调用
@@ -75,5 +98,6 @@ public class UserContext {
     public static void clear() {
         USER_ID_HOLDER.remove();
         USERNAME_HOLDER.remove();
+        ROLE_HOLDER.remove();
     }
 }

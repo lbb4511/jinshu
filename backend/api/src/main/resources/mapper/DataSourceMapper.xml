@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinshu.api.dao.DataSourceMapper">
+
+    <resultMap id="BaseResultMap" type="com.jinshu.common.entity.DataSource">
+        <id column="id" property="id"/>
+        <result column="tenant_id" property="tenantId"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="host" property="host"/>
+        <result column="port" property="port"/>
+        <result column="database_name" property="databaseName"/>
+        <result column="username" property="username"/>
+        <result column="connection_config" property="connectionConfig"/>
+        <result column="status" property="status"/>
+        <result column="last_test_time" property="lastTestTime"/>
+        <result column="last_test_result" property="lastTestResult"/>
+        <result column="description" property="description"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="deleted_at" property="deletedAt"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, tenant_id, name, type, host, port, database_name, username, connection_config,
+               status, last_test_time, last_test_result, description, created_by, updated_by,
+               created_at, updated_at, deleted_at
+        FROM data_source
+        WHERE id = #{id} AND deleted_at IS NULL
+    </select>
+
+    <select id="selectByIdAndTenantId" resultMap="BaseResultMap">
+        SELECT id, tenant_id, name, type, host, port, database_name, username, connection_config,
+               status, last_test_time, last_test_result, description, created_by, updated_by,
+               created_at, updated_at, deleted_at
+        FROM data_source
+        WHERE id = #{id} AND tenant_id = #{tenantId} AND deleted_at IS NULL
+    </select>
+
+    <select id="selectByNameAndTenantId" resultMap="BaseResultMap">
+        SELECT id, tenant_id, name, type, host, port, database_name, username, connection_config,
+               status, last_test_time, last_test_result, description, created_by, updated_by,
+               created_at, updated_at, deleted_at
+        FROM data_source
+        WHERE name = #{name} AND tenant_id = #{tenantId} AND deleted_at IS NULL
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT id, tenant_id, name, type, host, port, database_name, username, connection_config,
+               status, last_test_time, last_test_result, description, created_by, updated_by,
+               created_at, updated_at, deleted_at
+        FROM data_source
+        WHERE tenant_id = #{tenantId} AND deleted_at IS NULL
+        <if test="name != null">
+            AND name LIKE '%' || #{name} || '%'
+        </if>
+        <if test="type != null">
+            AND type = #{type}
+        </if>
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(*)
+        FROM data_source
+        WHERE tenant_id = #{tenantId} AND deleted_at IS NULL
+        <if test="name != null">
+            AND name LIKE '%' || #{name} || '%'
+        </if>
+        <if test="type != null">
+            AND type = #{type}
+        </if>
+    </select>
+
+    <select id="countByDataSourceId" resultType="long">
+        SELECT COUNT(*)
+        FROM report_metadata
+        WHERE data_source_id = #{dataSourceId} AND is_deleted = false
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO data_source (tenant_id, name, type, host, port, database_name, username,
+                              connection_config, status, description, created_by, created_at, updated_at)
+        VALUES (#{tenantId}, #{name}, #{type}, #{host}, #{port}, #{databaseName}, #{username},
+                #{connectionConfig}, #{status}, #{description}, #{createdBy}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update">
+        UPDATE data_source
+        SET name = #{name},
+            type = #{type},
+            host = #{host},
+            port = #{port},
+            database_name = #{databaseName},
+            username = #{username},
+            connection_config = #{connectionConfig},
+            status = #{status},
+            last_test_time = #{lastTestTime},
+            last_test_result = #{lastTestResult},
+            description = #{description},
+            updated_by = #{updatedBy},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

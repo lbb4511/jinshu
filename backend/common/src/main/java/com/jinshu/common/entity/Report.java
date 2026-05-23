@@ -76,4 +76,9 @@ public class Report {
      * 删除时间
      */
     private LocalDateTime deletedAt;
+
+    /**
+     * 报表状态：DRAFT/ PENDING_REVIEW/ APPROVED/ REJECTED/ PUBLISHED
+     */
+    private String status;
 }

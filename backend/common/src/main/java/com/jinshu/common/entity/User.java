@@ -53,6 +53,36 @@ public class User {
     private String status;
 
     /**
+     * 显示名称
+     */
+    private String displayName;
+
+    /**
+     * 连续登录失败次数
+     */
+    private Integer loginFailCount;
+
+    /**
+     * 锁定截止时间
+     */
+    private LocalDateTime lockedUntil;
+
+    /**
+     * 最后登录时间
+     */
+    private LocalDateTime lastLoginAt;
+
+    /**
+     * 最后登录IP
+     */
+    private String lastLoginIp;
+
+    /**
+     * 密码最后更新时间
+     */
+    private LocalDateTime passwordUpdatedAt;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createdAt;

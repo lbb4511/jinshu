@@ -6,21 +6,17 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
-/**
- * 报表数据访问层
- */
 @Mapper
 public interface ReportMapper {
 
-    Report selectById(@Param("id") Long id, @Param("tenantId") Long tenantId);
+    Report selectById(@Param("id") Long id);
 
-    List<Report> selectByReportId(@Param("reportId") Long reportId, @Param("tenantId") Long tenantId);
+    List<Report> selectList(@Param("tenantId") Long tenantId, @Param("name") String name,
+                            @Param("status") String status, @Param("offset") int offset, @Param("limit") int limit);
 
-    List<Report> selectList(@Param("tenantId") Long tenantId);
+    long countList(@Param("tenantId") Long tenantId, @Param("name") String name, @Param("status") String status);
 
     int insert(Report report);
 
     int update(Report report);
-
-    int deleteById(@Param("id") Long id, @Param("tenantId") Long tenantId);
 }

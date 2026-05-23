@@ -64,3 +64,4 @@ secrets/
 cache/
 upload/
 temp/
+.atomcode/graph.bin

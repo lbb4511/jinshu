@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinshu.api.dao.TaskMapper">
+
+    <resultMap id="BaseResultMap" type="com.jinshu.common.entity.Task">
+        <id column="id" property="id"/>
+        <result column="tenant_id" property="tenantId"/>
+        <result column="report_id" property="reportId"/>
+        <result column="task_type" property="taskType"/>
+        <result column="status" property="status"/>
+        <result column="priority" property="priority"/>
+        <result column="parameters" property="parameters"/>
+        <result column="progress" property="progress"/>
+        <result column="result" property="result"/>
+        <result column="error_message" property="errorMessage"/>
+        <result column="parent_task_id" property="parentTaskId"/>
+        <result column="shard_seq" property="shardSeq"/>
+        <result column="shard_total" property="shardTotal"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="started_at" property="startedAt"/>
+        <result column="completed_at" property="completedAt"/>
+        <result column="cancelled_at" property="cancelledAt"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, tenant_id, report_id, task_type, status, priority, parameters, progress,
+               result, error_message, parent_task_id, shard_seq, shard_total, created_by,
+               created_at, started_at, completed_at, cancelled_at
+        FROM task
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT id, tenant_id, report_id, task_type, status, priority, parameters, progress,
+               result, error_message, parent_task_id, shard_seq, shard_total, created_by,
+               created_at, started_at, completed_at, cancelled_at
+        FROM task
+        WHERE tenant_id = #{tenantId}
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(*)
+        FROM task
+        WHERE tenant_id = #{tenantId}
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <select id="countByStatus" resultType="long">
+        SELECT COUNT(*)
+        FROM task
+        WHERE tenant_id = #{tenantId} AND status = #{status}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO task (tenant_id, report_id, task_type, status, priority, parameters, progress,
+                         parent_task_id, shard_seq, shard_total, created_by, created_at)
+        VALUES (#{tenantId}, #{reportId}, #{taskType}, #{status}, #{priority}, #{parameters}, #{progress},
+                #{parentTaskId}, #{shardSeq}, #{shardTotal}, #{createdBy}, #{createdAt})
+    </insert>
+
+    <update id="update">
+        UPDATE task
+        SET status = #{status},
+            progress = #{progress},
+            result = #{result},
+            error_message = #{errorMessage},
+            started_at = #{startedAt},
+            completed_at = #{completedAt},
+            cancelled_at = #{cancelledAt}
+        WHERE id = #{id}
+    </update>
+
+</mapper>
