@@ -1,8 +1,12 @@
 package com.jinshu.common.security;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -10,6 +14,7 @@ import java.util.Date;
 import java.util.UUID;
 
 @Slf4j
+@Component
 public class JwtTokenProvider {
 
     private static final String JWT_SECRET = System.getenv("JINSHU_JWT_SECRET");
