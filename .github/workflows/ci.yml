@@ -1,13 +1,10 @@
-name: CI/CD Pipeline
+name: Java CI
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-
-env:
-  REGISTRY: 10.43.170.83:3000
 
 jobs:
   build:
@@ -39,72 +36,15 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Backend compile
+      - name: Compile
         run: ./gradlew compileJava --no-daemon
         working-directory: backend
 
-      - name: Backend test
+      - name: Test
         run: ./gradlew test --no-daemon
         working-directory: backend
 
       - name: Check dependency licenses
-        run: ./gradlew checkLicense --no-daemon || true
+        run: ./gradlew checkLicense --no-daemon
         working-directory: backend
-
-      - name: Frontend install & build
-        run: |
-          corepack enable
-          pnpm install --frozen-lockfile
-          pnpm build
-        working-directory: frontend
-
-  docker:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Docker CLI
-        run: |
-          apt-get update -qq
-          apt-get install -y -qq docker.io 2>/dev/null
-
-      - name: Login to Gitea registry
-        run: docker login $REGISTRY -u admin -p admin123
-
-      - name: Build & push backend image
-        run: |
-          docker build -t $REGISTRY/admin/jinshu-backend:${{ github.sha }} backend/
-          docker tag $REGISTRY/admin/jinshu-backend:${{ github.sha }} $REGISTRY/admin/jinshu-backend:latest
-          docker push $REGISTRY/admin/jinshu-backend:${{ github.sha }}
-          docker push $REGISTRY/admin/jinshu-backend:latest
-
-      - name: Build & push frontend image
-        run: |
-          docker build -t $REGISTRY/admin/jinshu-frontend:${{ github.sha }} frontend/
-          docker tag $REGISTRY/admin/jinshu-frontend:${{ github.sha }} $REGISTRY/admin/jinshu-frontend:latest
-          docker push $REGISTRY/admin/jinshu-frontend:${{ github.sha }}
-          docker push $REGISTRY/admin/jinshu-frontend:latest
-
-  deploy:
-    needs: docker
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install kubectl
-        run: |
-          curl -sLO "https://dl.k8s.io/release/v1.35.0/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          install kubectl /usr/local/bin/
-
-      - name: Deploy to K3s
-        run: |
-          kubectl apply -k k8s/
-          kubectl set image deployment/jinshu-backend -n jinshu \
-            "backend=$REGISTRY/admin/jinshu-backend:${{ github.sha }}"
-          kubectl set image deployment/jinshu-frontend -n jinshu \
-            "frontend=$REGISTRY/admin/jinshu-frontend:${{ github.sha }}"
-          kubectl rollout status deployment/jinshu-backend -n jinshu --timeout=120s
-          kubectl rollout status deployment/jinshu-frontend -n jinshu --timeout=60s
+        continue-on-error: true
