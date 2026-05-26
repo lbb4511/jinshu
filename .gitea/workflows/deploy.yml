@@ -61,5 +61,5 @@ jobs:
           tar czf - . | ssh -i ~/.ssh/id_ed25519 ${SSH_USER}@${SSH_HOST} \
             "rm -rf /tmp/jinshu && mkdir -p /tmp/jinshu && \
              tar xzf - -C /tmp/jinshu && \
-             GITEA_TOKEN=${{ secrets.REGISTRY_TOKEN }} \
+             GITEA_TOKEN=${{ gitea.token }} \
                bash /tmp/jinshu/scripts/deploy-jinshu.sh $SHA $TAG"
