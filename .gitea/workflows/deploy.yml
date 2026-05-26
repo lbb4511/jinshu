@@ -1,3 +1,6 @@
+# CI/CD Pipeline for Gitea Actions
+# 通过 SSH 发送代码到开发服务器，在 DinD 内用 Docker 容器编译构建
+
 name: CI/CD Pipeline
 
 on:
@@ -5,59 +8,14 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  SSH_HOST: 192.168.3.11
+  SSH_USER: dev
+  REGISTRY: 10.43.170.83:3000
+
 jobs:
   ci:
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: jinshu_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install JDK 21
-        run: |
-          apt-get update -qq
-          apt-get install -y -qq openjdk-21-jdk 2>/dev/null
-          java -version
-
-      - name: Backend compile
-        run: ./gradlew compileJava --no-daemon -x test
-        working-directory: backend
-
-      - name: Backend test
-        run: ./gradlew test --no-daemon
-        working-directory: backend
-
-      - name: Check dependency licenses
-        run: ./gradlew checkLicense --no-daemon || true
-        working-directory: backend
-
-      - name: Frontend install & build
-        run: |
-          corepack enable
-          pnpm install --frozen-lockfile
-          pnpm build
-        working-directory: frontend
-
-  deploy:
-    needs: ci
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    env:
-      SSH_HOST: 192.168.3.11
-      SSH_USER: dev
     steps:
       - uses: actions/checkout@v4
 
@@ -69,9 +27,32 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Deploy via SSH
+      - name: Send source & run CI
         run: |
-          tar czf - . | \
-            ssh -i ~/.ssh/id_ed25519 ${SSH_USER}@${SSH_HOST} \
-              "rm -rf /tmp/jinshu && mkdir -p /tmp/jinshu && tar xzf - -C /tmp/jinshu && \
-               bash ~/scripts/deploy-jinshu.sh ${{ gitea.sha }}"
+          SHA="${{ gitea.sha }}"
+          tar czf - . | ssh -i ~/.ssh/id_ed25519 ${SSH_USER}@${SSH_HOST} \
+            "rm -rf /tmp/jinshu-ci-$SHA && mkdir -p /tmp/jinshu-ci-$SHA && \
+             tar xzf - -C /tmp/jinshu-ci-$SHA && \
+             bash /tmp/jinshu-ci-$SHA/scripts/ci.sh $SHA"
+
+  deploy:
+    needs: ci
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          apt-get update -qq && apt-get install -y -qq openssh-client
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Send source & deploy
+        run: |
+          tar czf - . | ssh -i ~/.ssh/id_ed25519 ${SSH_USER}@${SSH_HOST} \
+            "rm -rf /tmp/jinshu && mkdir -p /tmp/jinshu && \
+             tar xzf - -C /tmp/jinshu && \
+             bash ~/scripts/deploy-jinshu.sh ${{ gitea.sha }}"
