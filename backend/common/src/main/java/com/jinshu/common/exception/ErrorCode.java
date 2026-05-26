@@ -91,6 +91,16 @@ public enum ErrorCode {
     FILE_SIZE_EXCEEDED(4002, "文件大小超出限制"),
 
     /**
+     * 磁盘空间不足
+     */
+    DISK_SPACE_INSUFFICIENT(4003, "存储空间不足"),
+
+    /**
+     * 文件表头与报表 schema 不匹配
+     */
+    COLUMN_MISMATCH(2008, "文件表头与报表 schema 不匹配"),
+
+    /**
      * 数据源连接失败
      */
     DATA_SOURCE_CONNECT_FAILED(5001, "数据源连接失败"),
@@ -123,16 +133,17 @@ public enum ErrorCode {
     /**
      * Refresh Token已失效
      */
-    REFRESH_TOKEN_INVALID(401, "Refresh Token已失效，请重新登录");
+    REFRESH_TOKEN_INVALID(401, "Refresh Token已失效，请重新登录"),
 
     /**
-     * 错误码
+     * PDF 渲染相关错误
      */
+    PDF_PAGE_LIMIT_EXCEEDED(3003, "报表页数超出限制，最大支持 500 页"),
+    PDF_RENDER_FAILED(3004, "PDF 渲染失败"),
+    PDF_MERGE_FAILED(3005, "PDF 分片合并失败"),
+    PDF_TASK_TIMEOUT(3006, "PDF 渲染超时");
+
     private final int code;
-
-    /**
-     * 错误信息
-     */
     private final String message;
 
     ErrorCode(int code, String message) {

@@ -89,7 +89,8 @@ public class TenantService {
     }
 
     public PageResult<Tenant> listTenants(String name, String status, int page, int pageSize) {
-        List<Tenant> tenants = tenantMapper.selectList(name, status, page, pageSize);
+        int offset = (page - 1) * pageSize;
+        List<Tenant> tenants = tenantMapper.selectList(name, status, offset, pageSize);
         long total = tenantMapper.countList(name, status);
         return PageResult.of(tenants, total, page, pageSize);
     }

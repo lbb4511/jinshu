@@ -1,0 +1,40 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/jinshu
+    username: jinshu
+    password: jinshu123
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 5000
+      connection-init-sql: SET search_path TO sys,meta,data,workflow,audit,task
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:migration.sql
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.jinshu.common.entity
+  configuration:
+    map-underscore-to-camel-case: true
+
+server:
+  port: 0
+
+jinshu:
+  tenant:
+    enabled: true
+    interceptor:
+      enabled: false
+  audit:
+    enabled: false
+  file:
+    base-path: /tmp/jinshu-test

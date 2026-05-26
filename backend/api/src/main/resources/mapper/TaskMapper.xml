@@ -59,6 +59,12 @@
         WHERE tenant_id = #{tenantId} AND status = #{status}
     </select>
 
+    <select id="countByTypeAndStatus" resultType="long">
+        SELECT COUNT(*)
+        FROM task
+        WHERE tenant_id = #{tenantId} AND task_type = #{type} AND status = #{status}
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO task (tenant_id, report_id, task_type, status, priority, parameters, progress,
                          parent_task_id, shard_seq, shard_total, created_by, created_at)

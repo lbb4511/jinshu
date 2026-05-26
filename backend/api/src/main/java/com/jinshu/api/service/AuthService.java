@@ -64,7 +64,8 @@ public class AuthService {
             throw new BusinessException(ErrorCode.TENANT_DISABLED);
         }
 
-        String accessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getTenantId(), user.getRole());
+        int tokenVersion = (int) tokenVersionManager.getCurrentVersion(user.getId());
+        String accessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getTenantId(), user.getRole(), tokenVersion);
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getId(), user.getTenantId());
 
         String refreshTokenId = jwtTokenProvider.getTokenIdFromToken(refreshToken);
@@ -107,6 +108,8 @@ public class AuthService {
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_INVALID);
         }
 
+        tokenVersionManager.deleteRefreshToken(userId, tokenId);
+
         User user = userMapper.selectById(userId);
         if (user == null) {
             throw new BusinessException(ErrorCode.USER_NOT_FOUND);
@@ -116,10 +119,17 @@ public class AuthService {
             throw new BusinessException(ErrorCode.USER_DISABLED);
         }
 
-        String newAccessToken = jwtTokenProvider.createAccessToken(userId, tenantId, user.getRole());
+        int tokenVersion = (int) tokenVersionManager.getCurrentVersion(userId);
+        String newAccessToken = jwtTokenProvider.createAccessToken(userId, tenantId, user.getRole(), tokenVersion);
+
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(userId, tenantId);
+        String newRefreshTokenId = jwtTokenProvider.getTokenIdFromToken(newRefreshToken);
+        long refreshExpiration = jwtTokenProvider.getRefreshTokenExpiration();
+        tokenVersionManager.storeRefreshToken(userId, newRefreshTokenId, refreshExpiration);
 
         Map<String, Object> result = new HashMap<>();
         result.put("accessToken", newAccessToken);
+        result.put("refreshToken", newRefreshToken);
         result.put("tokenType", "Bearer");
         result.put("expiresIn", jwtTokenProvider.getAccessTokenExpiration() / 1000);
 

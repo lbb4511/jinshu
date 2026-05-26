@@ -1,0 +1,129 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jinshu-worker
+  namespace: jinshu
+  labels:
+    app: jinshu-worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: jinshu-worker
+  template:
+    metadata:
+      labels:
+        app: jinshu-worker
+    spec:
+      containers:
+      - name: worker
+        image: 10.43.170.83:3000/admin/jinshu-worker:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: db_host
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: db_port
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: db_name
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: db_user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: jinshu-secret
+              key: db_password
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: redis_host
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: redis_port
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: jinshu-secret
+              key: redis_password
+        - name: RABBITMQ_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: rabbitmq_host
+        - name: RABBITMQ_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: rabbitmq_port
+        - name: RABBITMQ_USER
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: rabbitmq_user
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: jinshu-secret
+              key: rabbitmq_password
+        - name: JINSHU_FILE_BASE_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: jinshu_file_base_path
+        livenessProbe:
+          httpGet:
+            path: /api/live
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/ready
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        volumeMounts:
+        - name: data
+          mountPath: /data/jinshu
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: jinshu-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jinshu-worker
+  namespace: jinshu
+spec:
+  selector:
+    app: jinshu-worker
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080

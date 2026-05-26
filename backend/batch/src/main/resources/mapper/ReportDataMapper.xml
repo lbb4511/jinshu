@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinshu.batch.dao.ReportDataMapper">
+
+    <insert id="batchInsert">
+        INSERT INTO data.report_data (tenant_id, report_id, row_no, data_json, created_at)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.tenantId}, #{item.reportId}, #{item.rowNo}, #{item.dataJson}::jsonb, #{item.createdAt})
+        </foreach>
+    </insert>
+
+    <delete id="deleteByReportId">
+        DELETE FROM data.report_data
+        WHERE tenant_id = #{tenantId} AND report_id = #{reportId}
+    </delete>
+
+    <select id="countByReportId" resultType="int">
+        SELECT COUNT(*) FROM data.report_data
+        WHERE tenant_id = #{tenantId} AND report_id = #{reportId}
+    </select>
+
+</mapper>

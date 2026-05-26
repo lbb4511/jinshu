@@ -1,0 +1,124 @@
+.report-detail-page {
+  max-width: 900px;
+  margin: 0 auto;
+
+  .report-detail-loading,
+  .report-detail-error {
+    text-align: center;
+    padding: 60px;
+    font-size: 16px;
+    color: #666;
+  }
+
+  .report-detail-error {
+    color: #f44336;
+  }
+
+  .detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+
+    .detail-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .detail-title {
+      font-size: 24px;
+      color: #333;
+      margin: 0;
+    }
+
+    .detail-header-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+  }
+
+  .detail-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .detail-info-card {
+    .info-row {
+      display: flex;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .info-label {
+        width: 100px;
+        flex-shrink: 0;
+        color: #888;
+        font-size: 14px;
+      }
+
+      .info-value {
+        flex: 1;
+        color: #333;
+        font-size: 14px;
+      }
+    }
+  }
+
+  .detail-export-card {
+    .export-hint {
+      color: #888;
+      margin: 0 0 16px;
+      font-size: 14px;
+    }
+
+    .export-actions {
+      .export-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+
+      .task-progress {
+        margin-top: 16px;
+        padding: 12px;
+        background: #f9f9f9;
+        border-radius: 6px;
+
+        h4 {
+          margin: 0 0 8px;
+          font-size: 14px;
+          color: #555;
+        }
+
+        .task-status-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+      }
+    }
+  }
+
+  .dialog-form {
+    .field {
+      margin-bottom: 16px;
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: #555;
+        font-size: 14px;
+      }
+    }
+  }
+}

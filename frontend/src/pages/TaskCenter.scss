@@ -1,0 +1,22 @@
+.task-center-page {
+  .page-title {
+    font-size: 22px;
+    color: #333;
+    margin-bottom: 16px;
+  }
+
+  .task-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status-dropdown {
+    width: 130px;
+  }
+
+  .task-actions {
+    display: flex;
+    gap: 4px;
+  }
+}

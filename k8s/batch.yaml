@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jinshu-batch
+  namespace: jinshu
+  labels:
+    app: jinshu-batch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jinshu-batch
+  template:
+    metadata:
+      labels:
+        app: jinshu-batch
+    spec:
+      containers:
+      - name: batch
+        image: 10.43.170.83:3000/admin/jinshu-batch:latest
+        imagePullPolicy: Always
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: db_host
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: db_port
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: db_name
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: db_user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: jinshu-secret
+              key: db_password
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: redis_host
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: redis_port
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: jinshu-secret
+              key: redis_password
+        - name: RABBITMQ_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: rabbitmq_host
+        - name: RABBITMQ_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: rabbitmq_port
+        - name: RABBITMQ_USER
+          valueFrom:
+            configMapKeyRef:
+              name: jinshu-config
+              key: rabbitmq_user
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: jinshu-secret
+              key: rabbitmq_password
+        livenessProbe:
+          httpGet:
+            path: /api/live
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/ready
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"

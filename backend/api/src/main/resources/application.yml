@@ -79,6 +79,10 @@ jinshu:
   task:
     fair-scheduler: true        # 启用公平调度
     max-shard-rows: 100000    # 大任务分片行数
+  export:
+    queue: jinshu.export        # 导出任务队列
+  import:
+    queue: P4                   # 导入任务队列
 
 # 日志配置
 logging:

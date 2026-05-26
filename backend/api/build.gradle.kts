@@ -6,6 +6,7 @@ plugins {
 dependencyManagement {
     imports {
         mavenBom("org.springframework.boot:spring-boot-dependencies:4.0.6")
+        mavenBom("org.testcontainers:testcontainers-bom:1.20.6")
     }
     dependencies {
         dependency("org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.1")
@@ -16,6 +17,7 @@ dependencyManagement {
 dependencies {
     implementation(project(":common"))
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework:spring-aop")
@@ -28,9 +30,16 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.testcontainers:testcontainers")
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:postgresql")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
     mainClass.set("com.jinshu.api.ApiApplication")
+}
+
+tasks.named<Test>("test") {
+    environment("DOCKER_API_VERSION", "1.45")
 }

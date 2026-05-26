@@ -60,6 +60,13 @@ jinshu:
   task:
     fair-scheduler: true
     max-shard-rows: 100000
+  render:
+    queue: jinshu.render
+    segment:
+      queue: jinshu.render.segment
+  domain:
+    frontend-url: ${FRONTEND_URL:http://localhost:3000}
+    report-url: ${REPORT_URL:http://localhost:3000/report}
 
 logging:
   level:

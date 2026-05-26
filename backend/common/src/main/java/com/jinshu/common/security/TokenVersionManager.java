@@ -32,6 +32,16 @@ public class TokenVersionManager {
         }
     }
 
+    public long getCurrentVersion(Long userId) {
+        try {
+            String v = redisTemplate.opsForValue().get(String.format(TOKEN_VERSION_KEY, userId));
+            return v != null ? Long.parseLong(v) : 0;
+        } catch (Exception e) {
+            log.warn("Redis unavailable, returning default version: {}", e.getMessage());
+            return 0;
+        }
+    }
+
     public void incrementTokenVersion(Long userId) {
         try {
             redisTemplate.opsForValue().increment(String.format(TOKEN_VERSION_KEY, userId));

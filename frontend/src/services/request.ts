@@ -41,18 +41,20 @@ request.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-/**
- * 响应拦截器
- *
- * 统一处理响应数据
- * TODO: 可扩展添加错误处理、token过期跳转登录等
- */
+let redirecting = false
+
 request.interceptors.response.use(
   (response: AxiosResponse<ResponseData>) => {
     return response
   },
   (error) => {
-    console.error('Request Error:', error)
+    if (error.response?.status === 401 && !redirecting) {
+      redirecting = true
+      localStorage.removeItem('jinshu_token')
+      localStorage.removeItem('jinshu_refresh_token')
+      localStorage.removeItem('jinshu_user')
+      window.location.href = '/login'
+    }
     return Promise.reject(error)
   }
 )

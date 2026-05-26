@@ -1,0 +1,17 @@
+{
+  "name": "jinshu-renderer",
+  "version": "1.0.0",
+  "description": "PDF renderer service for Jinshu report system",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.5",
+    "puppeteer": "^24.0.0",
+    "commander": "^13.0.0",
+    "winston": "^3.17.0"
+  }
+}

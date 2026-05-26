@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinshu.batch.dao.ImportErrorLogMapper">
+
+    <insert id="batchInsert">
+        INSERT INTO data.import_error_log (tenant_id, task_id, report_id, row_no, column_name,
+                                           error_type, error_message, cell_value, created_at)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.tenantId}, #{item.taskId}, #{item.reportId}, #{item.rowNo}, #{item.columnName},
+             #{item.errorType}, #{item.errorMessage}, #{item.cellValue}, #{item.createdAt})
+        </foreach>
+    </insert>
+
+    <select id="selectByTaskId" resultType="com.jinshu.common.entity.ImportErrorLog">
+        SELECT id, tenant_id, task_id, report_id, row_no, column_name,
+               error_type, error_message, cell_value, created_at
+        FROM data.import_error_log
+        WHERE task_id = #{taskId}
+        ORDER BY row_no
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countByTaskId" resultType="long">
+        SELECT COUNT(*) FROM data.import_error_log WHERE task_id = #{taskId}
+    </select>
+
+</mapper>

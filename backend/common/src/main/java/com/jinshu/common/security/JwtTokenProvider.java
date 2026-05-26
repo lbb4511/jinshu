@@ -33,6 +33,10 @@ public class JwtTokenProvider {
     }
 
     public String createAccessToken(Long userId, Long tenantId, String role) {
+        return createAccessToken(userId, tenantId, role, 0);
+    }
+
+    public String createAccessToken(Long userId, Long tenantId, String role, int tokenVersion) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + ACCESS_TOKEN_EXPIRATION);
 
@@ -41,6 +45,7 @@ public class JwtTokenProvider {
                 .claim("tenant_id", tenantId)
                 .claim("role", role)
                 .claim("type", "access")
+                .claim("version", tokenVersion)
                 .issuedAt(now)
                 .expiration(expiration)
                 .id(UUID.randomUUID().toString())

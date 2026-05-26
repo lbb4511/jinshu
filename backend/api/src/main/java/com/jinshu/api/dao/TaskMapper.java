@@ -21,4 +21,8 @@ public interface TaskMapper {
     void update(Task task);
 
     long countByStatus(@Param("tenantId") Long tenantId, @Param("status") String status);
+
+    long countByTypeAndStatus(@Param("tenantId") Long tenantId,
+                              @Param("type") String type,
+                              @Param("status") String status);
 }

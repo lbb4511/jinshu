@@ -2,8 +2,8 @@ name: Deploy
 on: [push]
 
 env:
-  SSH_HOST: 192.168.3.11
-  SSH_USER: dev
+  REGISTRY: 10.43.170.83:3000
+  NAMESPACE: jinshu
 
 jobs:
   deploy:
@@ -16,17 +16,88 @@ jobs:
           git clone http://gitea-http.gitea.svc.cluster.local:3000/admin/jinshu.git /workspace/src
           cd /workspace/src && git checkout ${{ gitea.sha }}
 
-      - name: Setup SSH
+      - name: Select runner pod
+        id: runner
         run: |
-          apt-get update -qq && apt-get install -y -qq openssh-client
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts 2>/dev/null
+          POD=$(kubectl get pod -n gitea -l app=gitea-runner -o jsonpath='{.items[0].metadata.name}')
+          echo "pod=$POD" >> $GITHUB_ENV
 
-      - name: Deploy
+      - name: Copy source to dind
         run: |
-          tar czf - -C /workspace/src . | \
-            ssh -i ~/.ssh/id_ed25519 ${SSH_USER}@${SSH_HOST} \
-              "rm -rf /tmp/jinshu && mkdir -p /tmp/jinshu && tar xzf - -C /tmp/jinshu && \
-               bash ~/scripts/deploy-jinshu.sh ${{ gitea.sha }}"
+          kubectl exec -n gitea ${{ env.pod }} -c dind -- sh -c "
+            rm -rf /tmp/backend /tmp/frontend /tmp/renderer
+            mkdir -p /tmp/backend /tmp/frontend /tmp/renderer
+          "
+          tar czf - -C /workspace/src/backend . | \
+            kubectl exec -i -n gitea ${{ env.pod }} -c dind -- tar xzf - -C /tmp/backend
+          tar czf - -C /workspace/src/frontend . | \
+            kubectl exec -i -n gitea ${{ env.pod }} -c dind -- tar xzf - -C /tmp/frontend
+          tar czf - -C /workspace/src/renderer . | \
+            kubectl exec -i -n gitea ${{ env.pod }} -c dind -- tar xzf - -C /tmp/renderer
+
+      - name: Build and push images
+        run: |
+          IMAGE_TAG=${{ gitea.sha }}
+          kubectl exec -n gitea ${{ env.pod }} -c dind -- sh -c "
+            docker login -u admin -p admin123 $REGISTRY 2>/dev/null
+
+            echo '=== Backend ==='
+            docker build -t $REGISTRY/admin/jinshu-backend:\$IMAGE_TAG /tmp/backend
+            docker tag $REGISTRY/admin/jinshu-backend:\$IMAGE_TAG $REGISTRY/admin/jinshu-backend:latest
+            docker push $REGISTRY/admin/jinshu-backend:\$IMAGE_TAG
+            docker push $REGISTRY/admin/jinshu-backend:latest
+
+            echo '=== Worker ==='
+            docker build -f /tmp/backend/Dockerfile.worker \
+              -t $REGISTRY/admin/jinshu-worker:\$IMAGE_TAG /tmp/backend
+            docker tag $REGISTRY/admin/jinshu-worker:\$IMAGE_TAG $REGISTRY/admin/jinshu-worker:latest
+            docker push $REGISTRY/admin/jinshu-worker:\$IMAGE_TAG
+            docker push $REGISTRY/admin/jinshu-worker:latest
+
+            echo '=== Batch ==='
+            docker build -f /tmp/backend/Dockerfile.batch \
+              -t $REGISTRY/admin/jinshu-batch:\$IMAGE_TAG /tmp/backend
+            docker tag $REGISTRY/admin/jinshu-batch:\$IMAGE_TAG $REGISTRY/admin/jinshu-batch:latest
+            docker push $REGISTRY/admin/jinshu-batch:\$IMAGE_TAG
+            docker push $REGISTRY/admin/jinshu-batch:latest
+
+            echo '=== Frontend ==='
+            docker build -t $REGISTRY/admin/jinshu-frontend:\$IMAGE_TAG /tmp/frontend
+            docker tag $REGISTRY/admin/jinshu-frontend:\$IMAGE_TAG $REGISTRY/admin/jinshu-frontend:latest
+            docker push $REGISTRY/admin/jinshu-frontend:\$IMAGE_TAG
+            docker push $REGISTRY/admin/jinshu-frontend:latest
+
+            echo '=== Renderer ==='
+            docker build -t $REGISTRY/admin/jinshu-renderer:\$IMAGE_TAG /tmp/renderer
+            docker tag $REGISTRY/admin/jinshu-renderer:\$IMAGE_TAG $REGISTRY/admin/jinshu-renderer:latest
+            docker push $REGISTRY/admin/jinshu-renderer:\$IMAGE_TAG
+            docker push $REGISTRY/admin/jinshu-renderer:latest
+          "
+
+      - name: Deploy with kustomize
+        run: |
+          kubectl apply -k /workspace/src/k8s/
+
+          IMAGE_TAG=${{ gitea.sha }}
+          kubectl set image deployment/jinshu-backend -n $NAMESPACE \
+            "backend=$REGISTRY/admin/jinshu-backend:$IMAGE_TAG"
+          kubectl set image deployment/jinshu-worker -n $NAMESPACE \
+            "worker=$REGISTRY/admin/jinshu-worker:$IMAGE_TAG"
+          kubectl set image deployment/jinshu-batch -n $NAMESPACE \
+            "batch=$REGISTRY/admin/jinshu-batch:$IMAGE_TAG"
+          kubectl set image deployment/jinshu-frontend -n $NAMESPACE \
+            "frontend=$REGISTRY/admin/jinshu-frontend:$IMAGE_TAG"
+          kubectl set image deployment/jinshu-renderer -n $NAMESPACE \
+            "renderer=$REGISTRY/admin/jinshu-renderer:$IMAGE_TAG"
+
+      - name: Wait for rollouts
+        run: |
+          kubectl rollout status deployment/jinshu-backend -n $NAMESPACE --timeout=120s || true
+          kubectl rollout status deployment/jinshu-worker -n $NAMESPACE --timeout=120s || true
+          kubectl rollout status deployment/jinshu-batch -n $NAMESPACE --timeout=120s || true
+          kubectl rollout status deployment/jinshu-frontend -n $NAMESPACE --timeout=60s || true
+          kubectl rollout status deployment/jinshu-renderer -n $NAMESPACE --timeout=120s || true
+
+      - name: Show status
+        run: |
+          kubectl get pods -n $NAMESPACE

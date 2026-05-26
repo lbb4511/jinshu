@@ -1,51 +1,37 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { InputText } from 'primereact/inputtext'
 import { Password } from 'primereact/password'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
 import { Message } from 'primereact/message'
+import { useAuth } from '../store/useAuth'
 import './Login.scss'
 
-/**
- * 用户登录页面
- *
- * 功能说明：
- * - 用户名/密码输入
- * - 表单验证
- * - 登录状态管理
- *
- * 待实现：
- * - 调用后端登录API
- * - JWT Token存储
- * - 登录成功跳转到首页
- * - 记住密码功能
- */
 function Login() {
-  /**
-   * 用户名状态
-   */
   const [username, setUsername] = useState<string>('')
-
-  /**
-   * 密码状态
-   */
   const [password, setPassword] = useState<string>('')
-
-  /**
-   * 错误提示信息
-   */
   const [error, setError] = useState<string>('')
+  const [submitting, setSubmitting] = useState(false)
+  const { login } = useAuth()
+  const navigate = useNavigate()
 
-  /**
-   * 处理登录提交
-   */
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!username || !password) {
       setError('请输入用户名和密码')
       return
     }
-    console.log('Login:', username)
-    // TODO: 调用后端登录API
+    setError('')
+    setSubmitting(true)
+    try {
+      await login({ username, password })
+      navigate('/', { replace: true })
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || '登录失败，请检查用户名和密码'
+      setError(msg)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -75,9 +61,10 @@ function Login() {
           </div>
 
           <Button
-            label="登录"
+            label={submitting ? '登录中...' : '登录'}
             icon="pi pi-sign-in"
             className="login-button"
+            disabled={submitting}
             onClick={handleLogin}
           />
         </div>

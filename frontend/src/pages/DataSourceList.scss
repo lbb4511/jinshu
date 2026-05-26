@@ -1,0 +1,49 @@
+.datasource-list-page {
+  .page-title {
+    font-size: 22px;
+    color: #333;
+    margin-bottom: 16px;
+  }
+
+  .ds-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .type-dropdown {
+    width: 150px;
+  }
+
+  .ds-actions {
+    display: flex;
+    gap: 4px;
+  }
+
+  .ds-form {
+    .field {
+      margin-bottom: 16px;
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: #555;
+        font-size: 14px;
+      }
+
+      .p-inputtext, .p-dropdown, .p-inputtextarea {
+        width: 100%;
+      }
+    }
+
+    .field-row {
+      display: flex;
+      gap: 16px;
+
+      .field.half {
+        flex: 1;
+      }
+    }
+  }
+}

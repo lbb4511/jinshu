@@ -1,36 +1,29 @@
 spring:
   application:
-    name: jinshu-report
+    name: jinshu-batch
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/jinshu
-    username: jinshu
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:jinshu}
+    username: ${DB_USER:jinshu}
     password: ${DB_PASSWORD:jinshu123}
     hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 2
       connection-init-sql: SET search_path TO sys,meta,data,workflow,audit,task
 
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
       database: 0
 
   rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
-    virtual-host: /
-
-  servlet:
-    multipart:
-      max-file-size: 500MB
-      max-request-size: 500MB
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
 
   batch:
     jdbc:
@@ -38,30 +31,22 @@ spring:
 
 mybatis:
   mapper-locations: classpath:mapper/**/*.xml
-  type-aliases-package: com.jinshu.entity
+  type-aliases-package: com.jinshu.common.entity
   configuration:
     map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 
-server:
-  port: 8080
-  servlet:
-    context-path: /api
-
-# 锦书系统配置
 jinshu:
-  tenant:
-    enabled: true
-  audit:
-    enabled: true
-  file:
-    base-path: /data/jinshu
-    max-size: 524288000
-  task:
-    fair-scheduler: true
-    max-shard-rows: 100000
+  import:
+    queue: P4
+    batch-size: 1000
+    max-error-rate: 0.3
+    shard:
+      small-threshold: 10000
+      medium-threshold: 100000
+      small-shard-size: 10000
+      medium-shard-size: 50000
+      large-shard-size: 50000
 
 logging:
   level:
     com.jinshu: DEBUG
-    org.springframework.security: INFO

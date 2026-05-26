@@ -11,6 +11,9 @@ resources:
 - pvc.yaml
 - deployment.yaml
 - service.yaml
+- worker.yaml
+- renderer.yaml
+- batch.yaml
 - infra.yaml
 - ingress.yaml
 - rbac.yaml

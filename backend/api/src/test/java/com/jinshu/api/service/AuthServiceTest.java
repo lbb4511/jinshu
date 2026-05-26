@@ -84,7 +84,7 @@ class AuthServiceTest {
         when(userMapper.selectByUsername(USERNAME)).thenReturn(createActiveUser());
         when(passwordEncoder.matches(PASSWORD, PASSWORD_HASH)).thenReturn(true);
         when(tenantMapper.selectById(TENANT_ID)).thenReturn(createActiveTenant());
-        when(jwtTokenProvider.createAccessToken(USER_ID, TENANT_ID, "ADMIN")).thenReturn("access_token");
+        when(jwtTokenProvider.createAccessToken(USER_ID, TENANT_ID, "ADMIN", 0)).thenReturn("access_token");
         when(jwtTokenProvider.createRefreshToken(USER_ID, TENANT_ID)).thenReturn("refresh_token");
         when(jwtTokenProvider.getAccessTokenExpiration()).thenReturn(1800000L);
         when(jwtTokenProvider.getRefreshTokenExpiration()).thenReturn(604800000L);
@@ -186,7 +186,7 @@ class AuthServiceTest {
         when(jwtTokenProvider.getTypeFromToken("valid_refresh_token")).thenReturn("refresh");
         when(tokenVersionManager.isRefreshTokenValid(USER_ID, null)).thenReturn(true);
         when(userMapper.selectById(USER_ID)).thenReturn(createActiveUser());
-        when(jwtTokenProvider.createAccessToken(USER_ID, TENANT_ID, "ADMIN")).thenReturn("new_access_token");
+        when(jwtTokenProvider.createAccessToken(USER_ID, TENANT_ID, "ADMIN", 0)).thenReturn("new_access_token");
 
         Map<String, Object> result = authService.refreshToken("valid_refresh_token");
 

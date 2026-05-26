@@ -11,6 +11,10 @@ dependencies {
     implementation("org.postgresql:postgresql:42.7.11")
     implementation("com.alibaba:easyexcel:4.0.3")
     implementation("org.apache.pdfbox:pdfbox:3.0.7")
+    implementation("com.fasterxml.jackson.core:jackson-databind")
+
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {

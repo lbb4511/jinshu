@@ -1,9 +1,10 @@
 package com.jinshu.api.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jinshu.common.context.TenantContext;
 import com.jinshu.common.context.UserContext;
-import com.jinshu.common.exception.BusinessException;
 import com.jinshu.common.exception.ErrorCode;
+import com.jinshu.common.result.Result;
 import com.jinshu.common.security.JwtTokenProvider;
 import com.jinshu.common.security.TokenVersionManager;
 import io.jsonwebtoken.Claims;
@@ -15,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,6 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenVersionManager tokenVersionManager;
+    private final ObjectMapper objectMapper;
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
@@ -43,7 +46,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = extractToken(request);
 
             if (StringUtils.hasText(token)) {
-                processToken(token, request);
+                if (!processToken(token, request, response)) {
+                    return;
+                }
             }
 
             filterChain.doFilter(request, response);
@@ -61,19 +66,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 
-    private void processToken(String token, HttpServletRequest request) {
+    private boolean processToken(String token, HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             Claims claims = jwtTokenProvider.parseToken(token);
 
             String type = claims.get("type", String.class);
             if (!"access".equals(type)) {
-                return;
+                return true;
             }
 
             String jti = claims.getId();
             if (tokenVersionManager.isInBlacklist(jti)) {
                 log.warn("Token is in blacklist: {}", jti);
-                throw new BusinessException(ErrorCode.TOKEN_INVALID, "Token已被吊销");
+                writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Token已被吊销");
+                return false;
             }
 
             Long userId = Long.parseLong(claims.getSubject());
@@ -83,7 +89,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (tokenVersion != null && !tokenVersionManager.isTokenValid(userId, tokenVersion)) {
                 log.warn("Token version mismatch for user: {}", userId);
-                throw new BusinessException(ErrorCode.TOKEN_INVALID, "Token已被吊销，请重新登录");
+                writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Token已被吊销，请重新登录");
+                return false;
             }
 
             TenantContext.setTenantId(tenantId);
@@ -104,13 +111,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             request.setAttribute("tenantId", tenantId);
             request.setAttribute("tokenId", jti);
 
+            return true;
+
         } catch (ExpiredJwtException e) {
             log.warn("Token expired");
-            throw new BusinessException(ErrorCode.TOKEN_EXPIRED, "Token已过期");
+            writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Token已过期，请刷新");
+            return false;
         } catch (JwtException e) {
             log.warn("Invalid token: {}", e.getMessage());
-            throw new BusinessException(ErrorCode.TOKEN_INVALID, "Token无效");
+            writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Token无效");
+            return false;
         }
+    }
+
+    private void writeError(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+        objectMapper.writeValue(response.getWriter(), Result.error(status, message));
     }
 
     @Override

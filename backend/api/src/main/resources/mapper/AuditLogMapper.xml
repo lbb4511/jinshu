@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinshu.api.dao.AuditLogMapper">
+
+    <resultMap id="AuditLogResultMap" type="com.jinshu.common.entity.AuditLogEntry">
+        <id column="id" property="id"/>
+        <result column="tenant_id" property="tenantId"/>
+        <result column="user_id" property="userId"/>
+        <result column="username" property="username"/>
+        <result column="operation" property="operation"/>
+        <result column="target_type" property="targetType"/>
+        <result column="target_id" property="targetId"/>
+        <result column="target_name" property="targetName"/>
+        <result column="ip_address" property="ipAddress"/>
+        <result column="user_agent" property="userAgent"/>
+        <result column="status" property="status"/>
+        <result column="error_message" property="errorMessage"/>
+        <result column="log_hash" property="logHash"/>
+        <result column="previous_hash" property="previousHash"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO audit.audit_log
+            (tenant_id, user_id, username, operation, target_type, target_id, target_name,
+             ip_address, user_agent, request_params, status, error_message, created_at,
+             log_hash, previous_hash)
+        VALUES
+            (#{tenantId}, #{userId}, #{username}, #{operation}, #{targetType}, #{targetId}, #{targetName},
+             #{ipAddress}, #{userAgent}, #{requestParams}::jsonb, #{status}, #{errorMessage}, #{createdAt},
+             #{logHash}, #{previousHash})
+    </insert>
+
+    <select id="selectLatestLogHash" resultType="string">
+        SELECT log_hash
+        FROM audit.audit_log
+        WHERE tenant_id = #{tenantId}
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <insert id="insertRootHash" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO audit.audit_root_hash
+            (tenant_id, hour_start, root_hash, log_count, created_at)
+        VALUES
+            (#{tenantId}, #{hourStart}, #{rootHash}, #{logCount}, #{createdAt})
+        ON CONFLICT (tenant_id, hour_start) DO UPDATE
+            SET root_hash = #{rootHash},
+                log_count = #{logCount}
+    </insert>
+
+    <select id="selectRootHash" resultType="com.jinshu.common.entity.AuditRootHash">
+        SELECT id, tenant_id, hour_start, root_hash, log_count, created_at
+        FROM audit.audit_root_hash
+        WHERE tenant_id = #{tenantId} AND hour_start = #{hourStart}
+    </select>
+
+    <select id="countByTenantAndTime" resultType="long">
+        SELECT COUNT(*)
+        FROM audit.audit_log
+        WHERE tenant_id = #{tenantId} AND created_at >= #{hourStart}
+    </select>
+
+    <select id="selectList" resultMap="AuditLogResultMap">
+        SELECT id, tenant_id, user_id, username, operation, target_type, target_id, target_name,
+               ip_address, user_agent, status, error_message, log_hash, previous_hash, created_at
+        FROM audit.audit_log
+        WHERE tenant_id = #{tenantId}
+        <if test="userId != null">
+            AND user_id = #{userId}
+        </if>
+        <if test="operation != null and operation != ''">
+            AND operation = #{operation}
+        </if>
+        <if test="targetType != null and targetType != ''">
+            AND target_type = #{targetType}
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        <if test="dateFrom != null">
+            AND created_at &gt;= #{dateFrom}
+        </if>
+        <if test="dateTo != null">
+            AND created_at &lt;= #{dateTo}
+        </if>
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(*)
+        FROM audit.audit_log
+        WHERE tenant_id = #{tenantId}
+        <if test="userId != null">
+            AND user_id = #{userId}
+        </if>
+        <if test="operation != null and operation != ''">
+            AND operation = #{operation}
+        </if>
+        <if test="targetType != null and targetType != ''">
+            AND target_type = #{targetType}
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        <if test="dateFrom != null">
+            AND created_at &gt;= #{dateFrom}
+        </if>
+        <if test="dateTo != null">
+            AND created_at &lt;= #{dateTo}
+        </if>
+    </select>
+
+    <select id="selectByHour" resultMap="AuditLogResultMap">
+        SELECT id, tenant_id, user_id, username, operation, target_type, target_id, target_name,
+               ip_address, user_agent, status, error_message, log_hash, previous_hash, created_at
+        FROM audit.audit_log
+        WHERE tenant_id = #{tenantId}
+          AND created_at &gt;= #{hourStart}
+          AND created_at &lt; #{hourEnd}
+        ORDER BY id ASC
+    </select>
+
+    <select id="selectRootHashList" resultType="com.jinshu.common.entity.AuditRootHash">
+        SELECT id, tenant_id, hour_start, root_hash, log_count, created_at
+        FROM audit.audit_root_hash
+        WHERE tenant_id = #{tenantId}
+        <if test="dateFrom != null">
+            AND hour_start &gt;= #{dateFrom}
+        </if>
+        <if test="dateTo != null">
+            AND hour_start &lt;= #{dateTo}
+        </if>
+        ORDER BY hour_start DESC
+    </select>
+
+</mapper>
