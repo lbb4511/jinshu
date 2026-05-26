@@ -51,8 +51,6 @@ jobs:
           git checkout ${{ gitea.sha }}
 
       - name: Setup SSH & deploy
-        env:
-          GITEA_TOKEN: ${{ gitea.token }}
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
@@ -63,5 +61,5 @@ jobs:
           tar czf - . | ssh -i ~/.ssh/id_ed25519 ${SSH_USER}@${SSH_HOST} \
             "rm -rf /tmp/jinshu && mkdir -p /tmp/jinshu && \
              tar xzf - -C /tmp/jinshu && \
-             GITEA_TOKEN=${{ gitea.token }} \
+             GITEA_TOKEN=${{ secrets.REGISTRY_TOKEN }} \
                bash /tmp/jinshu/scripts/deploy-jinshu.sh $SHA $TAG"
