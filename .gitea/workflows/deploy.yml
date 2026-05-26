@@ -1,5 +1,6 @@
 # CI/CD Pipeline for Gitea Actions
-# 完全基于 Gitea 内部服务，不依赖 GitHub
+# - CI: 代码推送时编译检查
+# - CD: 打 tag 时构建 Docker 镜像并部署到 K3s
 
 name: CI/CD Pipeline
 
@@ -11,11 +12,12 @@ on:
 env:
   SSH_HOST: 192.168.3.11
   SSH_USER: dev
-  REGISTRY: 10.43.170.83:3000
   GITEA_URL: http://gitea-http.gitea.svc.cluster.local:3000
+  REGISTRY: gitea-http.gitea.svc.cluster.local:3000
 
 jobs:
   ci:
+    if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.base_ref == 'main')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -37,9 +39,8 @@ jobs:
              tar xzf - -C /tmp/jinshu-ci-$SHA && \
              bash /tmp/jinshu-ci-$SHA/scripts/ci.sh $SHA"
 
-  deploy:
-    needs: ci
-    if: gitea.ref == 'refs/heads/main' && gitea.event_name == 'push'
+  cd:
+    if: startsWith(gitea.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -50,12 +51,17 @@ jobs:
           git checkout ${{ gitea.sha }}
 
       - name: Setup SSH & deploy
+        env:
+          GITEA_TOKEN: ${{ gitea.token }}
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts 2>/dev/null
+          SHA="${{ gitea.sha }}"
+          TAG="${{ gitea.ref }}"
           tar czf - . | ssh -i ~/.ssh/id_ed25519 ${SSH_USER}@${SSH_HOST} \
             "rm -rf /tmp/jinshu && mkdir -p /tmp/jinshu && \
              tar xzf - -C /tmp/jinshu && \
-             bash ~/scripts/deploy-jinshu.sh ${{ gitea.sha }}"
+             GITEA_TOKEN=${{ gitea.token }} \
+               bash /tmp/jinshu/scripts/deploy-jinshu.sh $SHA $TAG"
