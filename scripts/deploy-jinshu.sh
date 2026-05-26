@@ -54,7 +54,7 @@ DOCKERCMD
 echo "=== Building backend ==="
 kubectl exec -n gitea "$POD" -c dind -- sh -c "
   echo 'Building backend...'
-  docker build -t $BACKEND_IMAGE:$GITEA_SHA /tmp/backend
+  DOCKER_BUILDKIT=1 docker build -t $BACKEND_IMAGE:$GITEA_SHA /tmp/backend
   docker tag $BACKEND_IMAGE:$GITEA_SHA $BACKEND_IMAGE:latest
   echo 'Pushing backend...'
   docker push $BACKEND_IMAGE:$GITEA_SHA
@@ -65,7 +65,7 @@ kubectl exec -n gitea "$POD" -c dind -- sh -c "
 echo "=== Building frontend ==="
 kubectl exec -n gitea "$POD" -c dind -- sh -c "
   echo 'Building frontend...'
-  docker build -t $FRONTEND_IMAGE:$GITEA_SHA /tmp/frontend
+  DOCKER_BUILDKIT=1 docker build -t $FRONTEND_IMAGE:$GITEA_SHA /tmp/frontend
   docker tag $FRONTEND_IMAGE:$GITEA_SHA $FRONTEND_IMAGE:latest
   echo 'Pushing frontend...'
   docker push $FRONTEND_IMAGE:$GITEA_SHA
