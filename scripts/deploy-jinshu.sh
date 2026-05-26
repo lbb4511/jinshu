@@ -47,7 +47,12 @@ tar czf - -C "$WORK_DIR/frontend" . | kubectl exec -i -n gitea "$POD" -c dind --
 # Login to registry
 echo "=== Login to $REGISTRY ==="
 echo "=== Token length: ${#GITEA_TOKEN} ==="
+echo "=== Token prefix: ${GITEA_TOKEN:0:4} ==="
 kubectl exec -n gitea "$POD" -c dind -- sh <<DOCKERCMD
+  echo "=== Inside dind, token=($GITEA_TOKEN) ==="
+  echo "$GITEA_TOKEN" | head -c 10
+  echo
+  echo "--- Attempting login ---"
   echo "$GITEA_TOKEN" | docker login -u admin --password-stdin $REGISTRY
 DOCKERCMD
 
