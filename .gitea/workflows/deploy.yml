@@ -19,16 +19,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup SSH
+      - name: Setup SSH & run CI
         run: |
-          apt-get update -qq && apt-get install -y -qq openssh-client
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts 2>/dev/null
-
-      - name: Send source & run CI
-        run: |
           SHA="${{ gitea.sha }}"
           tar czf - . | ssh -i ~/.ssh/id_ed25519 ${SSH_USER}@${SSH_HOST} \
             "rm -rf /tmp/jinshu-ci-$SHA && mkdir -p /tmp/jinshu-ci-$SHA && \
@@ -42,16 +38,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup SSH
+      - name: Setup SSH & deploy
         run: |
-          apt-get update -qq && apt-get install -y -qq openssh-client
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts 2>/dev/null
-
-      - name: Send source & deploy
-        run: |
           tar czf - . | ssh -i ~/.ssh/id_ed25519 ${SSH_USER}@${SSH_HOST} \
             "rm -rf /tmp/jinshu && mkdir -p /tmp/jinshu && \
              tar xzf - -C /tmp/jinshu && \
