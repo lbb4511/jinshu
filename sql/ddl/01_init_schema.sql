@@ -91,11 +91,20 @@ CREATE TABLE IF NOT EXISTS meta.data_source (
     tenant_id       BIGINT NOT NULL,
     name            VARCHAR(128) NOT NULL,
     type            VARCHAR(32) NOT NULL,
-    connection_config JSONB NOT NULL,
+    host            VARCHAR(255),
+    port            INTEGER,
+    database_name   VARCHAR(128),
+    username        VARCHAR(128),
+    connection_config JSONB,
     status          VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    last_test_time  TIMESTAMP,
+    last_test_result VARCHAR(50),
+    description     TEXT,
     created_by      BIGINT,
+    updated_by      BIGINT,
     created_at      TIMESTAMP DEFAULT NOW(),
-    updated_at      TIMESTAMP DEFAULT NOW()
+    updated_at      TIMESTAMP DEFAULT NOW(),
+    deleted_at      TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_data_source_tenant ON meta.data_source(tenant_id);

@@ -46,13 +46,7 @@ tar czf - -C "$WORK_DIR/frontend" . | kubectl exec -i -n gitea "$POD" -c dind --
 
 # Login to registry
 echo "=== Login to $REGISTRY ==="
-echo "=== Token length: ${#GITEA_TOKEN} ==="
-echo "=== Token prefix: ${GITEA_TOKEN:0:4} ==="
 kubectl exec -n gitea "$POD" -c dind -- sh <<DOCKERCMD
-  echo "=== Inside dind, token=($GITEA_TOKEN) ==="
-  echo "$GITEA_TOKEN" | head -c 10
-  echo
-  echo "--- Attempting login ---"
   echo "$GITEA_TOKEN" | docker login -u admin --password-stdin $REGISTRY
 DOCKERCMD
 
@@ -80,8 +74,11 @@ kubectl exec -n gitea "$POD" -c dind -- sh -c "
 
 # Deploy
 echo "=== Deploying ==="
-sed "s|image: .*/jinshu-backend:.*|image: $BACKEND_IMAGE:$GITEA_SHA|g" "$WORK_DIR/k8s/deployment.yaml" | \
-  sed "s|image: .*/jinshu-frontend:.*|image: $FRONTEND_IMAGE:$GITEA_SHA|g" | \
+# K3s containerd uses host DNS, can't resolve .svc.cluster.local
+# Use NodePort ClusterIP for deployment image references
+DEPLOY_REGISTRY="10.43.170.83:3000"
+sed "s|image: .*/jinshu-backend:.*|image: $DEPLOY_REGISTRY/admin/jinshu-backend:$GITEA_SHA|g" "$WORK_DIR/k8s/deployment.yaml" | \
+  sed "s|image: .*/jinshu-frontend:.*|image: $DEPLOY_REGISTRY/admin/jinshu-frontend:$GITEA_SHA|g" | \
   kubectl apply -f -
 
 echo "=== Waiting for backend rollout ==="
