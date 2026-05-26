@@ -21,8 +21,8 @@ tar czf - -C "$WORK_DIR/frontend" . | kubectl exec -i -n gitea "$POD" -c dind --
 echo "=== Backend: compile ==="
 kubectl exec -n gitea "$POD" -c dind -- sh -c "
   docker run --rm -v /tmp/ci/backend:/app -w /app \
-    gradle:8-jdk21 \
-    ./gradlew compileJava --no-daemon -x test
+    gradle:jdk21 \
+    gradle compileJava --no-daemon -x test
 "
 
 echo "=== Frontend: install & build ==="
