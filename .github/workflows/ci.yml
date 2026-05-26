@@ -8,8 +8,6 @@ on:
 
 env:
   REGISTRY: 10.43.170.83:3000
-  BACKEND_IMAGE: 10.43.170.83:3000/admin/jinshu-backend
-  FRONTEND_IMAGE: 10.43.170.83:3000/admin/jinshu-frontend
 
 jobs:
   build:
@@ -32,6 +30,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Backend compile
+        run: ./gradlew compileJava --no-daemon
+        working-directory: backend
+
+      - name: Backend test
+        run: ./gradlew test --no-daemon
+        working-directory: backend
+
+      - name: Check dependency licenses
+        run: ./gradlew checkLicense --no-daemon || true
+        working-directory: backend
+
       - name: Frontend install & build
         run: |
           corepack enable
@@ -39,53 +58,36 @@ jobs:
           pnpm build
         working-directory: frontend
 
-      - name: Backend compile
-        run: |
-          docker run --rm \
-            --network host \
-            -v $PWD/backend:/app -w /app \
-            gradle:8-jdk21 \
-            gradle compileJava --no-daemon
+  docker:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Backend test
+      - name: Install Docker CLI
         run: |
-          docker run --rm \
-            --network host \
-            -v $PWD/backend:/app -w /app \
-            -e DB_HOST=localhost \
-            -e DB_PORT=5432 \
-            -e DB_NAME=jinshu_test \
-            -e DB_USER=postgres \
-            -e DB_PASSWORD=postgres \
-            gradle:8-jdk21 \
-            gradle test --no-daemon
-
-      - name: Check dependency licenses
-        run: |
-          docker run --rm \
-            -v $PWD/backend:/app -w /app \
-            gradle:8-jdk21 \
-            gradle checkLicense --no-daemon || true
+          apt-get update -qq
+          apt-get install -y -qq docker.io 2>/dev/null
 
       - name: Login to Gitea registry
-        run: docker login -u admin -p admin123 $REGISTRY
+        run: docker login $REGISTRY -u admin -p admin123
 
       - name: Build & push backend image
         run: |
-          docker build -t $BACKEND_IMAGE:${{ github.sha }} backend/
-          docker tag $BACKEND_IMAGE:${{ github.sha }} $BACKEND_IMAGE:latest
-          docker push $BACKEND_IMAGE:${{ github.sha }}
-          docker push $BACKEND_IMAGE:latest
+          docker build -t $REGISTRY/admin/jinshu-backend:${{ github.sha }} backend/
+          docker tag $REGISTRY/admin/jinshu-backend:${{ github.sha }} $REGISTRY/admin/jinshu-backend:latest
+          docker push $REGISTRY/admin/jinshu-backend:${{ github.sha }}
+          docker push $REGISTRY/admin/jinshu-backend:latest
 
       - name: Build & push frontend image
         run: |
-          docker build -t $FRONTEND_IMAGE:${{ github.sha }} frontend/
-          docker tag $FRONTEND_IMAGE:${{ github.sha }} $FRONTEND_IMAGE:latest
-          docker push $FRONTEND_IMAGE:${{ github.sha }}
-          docker push $FRONTEND_IMAGE:latest
+          docker build -t $REGISTRY/admin/jinshu-frontend:${{ github.sha }} frontend/
+          docker tag $REGISTRY/admin/jinshu-frontend:${{ github.sha }} $REGISTRY/admin/jinshu-frontend:latest
+          docker push $REGISTRY/admin/jinshu-frontend:${{ github.sha }}
+          docker push $REGISTRY/admin/jinshu-frontend:latest
 
   deploy:
-    needs: build
+    needs: docker
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -101,8 +103,8 @@ jobs:
         run: |
           kubectl apply -k k8s/
           kubectl set image deployment/jinshu-backend -n jinshu \
-            "backend=$BACKEND_IMAGE:${{ github.sha }}"
+            "backend=$REGISTRY/admin/jinshu-backend:${{ github.sha }}"
           kubectl set image deployment/jinshu-frontend -n jinshu \
-            "frontend=$FRONTEND_IMAGE:${{ github.sha }}"
+            "frontend=$REGISTRY/admin/jinshu-frontend:${{ github.sha }}"
           kubectl rollout status deployment/jinshu-backend -n jinshu --timeout=120s
           kubectl rollout status deployment/jinshu-frontend -n jinshu --timeout=60s
