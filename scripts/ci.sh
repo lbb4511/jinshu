@@ -18,18 +18,18 @@ kubectl exec -n gitea "$POD" -c dind -- sh -c "
 tar czf - -C "$WORK_DIR/backend" . | kubectl exec -i -n gitea "$POD" -c dind -- tar xzf - -C /tmp/ci/backend
 tar czf - -C "$WORK_DIR/frontend" . | kubectl exec -i -n gitea "$POD" -c dind -- tar xzf - -C /tmp/ci/frontend
 
-echo "=== Backend: compile ==="
+echo "=== Backend: compile (cached) ==="
 kubectl exec -n gitea "$POD" -c dind -- sh -c "
   docker run --rm -v /tmp/ci/backend:/app -w /app \
-    gradle:jdk21 \
+    jinshu/ci-backend \
     gradle compileJava --no-daemon -x test
 "
 
-echo "=== Frontend: install & build ==="
+echo "=== Frontend: build (cached) ==="
 kubectl exec -n gitea "$POD" -c dind -- sh -c "
   docker run --rm -v /tmp/ci/frontend:/app -w /app \
-    node:22-alpine \
-    sh -c 'corepack enable 2>/dev/null && pnpm install --frozen-lockfile 2>/dev/null && pnpm build 2>/dev/null'
+    jinshu/ci-frontend \
+    sh -c 'cp -a /node_modules-cache . && pnpm build'
 "
 
 echo "=== CI passed ==="
