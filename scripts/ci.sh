@@ -29,7 +29,7 @@ echo "=== Frontend: build (cached) ==="
 kubectl exec -n gitea "$POD" -c dind -- sh -c "
   docker run --rm -v /tmp/ci/frontend:/app -w /app \
     jinshu/ci-frontend \
-    sh -c 'cp -a /node_modules-cache . && pnpm build'
+    sh -c 'cp -a /node_modules-cache . && corepack enable 2>/dev/null && PATH=node_modules/.bin:\$PATH tsc --noEmit 2>/dev/null && vite build'
 "
 
 echo "=== CI passed ==="
