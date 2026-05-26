@@ -73,7 +73,7 @@ public class AuthService {
         tokenVersionManager.storeRefreshToken(user.getId(), refreshTokenId, refreshExpiration);
 
         Map<String, Object> result = new HashMap<>();
-        result.put("accessToken", accessToken);
+        result.put("token", accessToken);
         result.put("refreshToken", refreshToken);
         result.put("tokenType", "Bearer");
         result.put("expiresIn", jwtTokenProvider.getAccessTokenExpiration() / 1000);
@@ -128,7 +128,7 @@ public class AuthService {
         tokenVersionManager.storeRefreshToken(userId, newRefreshTokenId, refreshExpiration);
 
         Map<String, Object> result = new HashMap<>();
-        result.put("accessToken", newAccessToken);
+        result.put("token", newAccessToken);
         result.put("refreshToken", newRefreshToken);
         result.put("tokenType", "Bearer");
         result.put("expiresIn", jwtTokenProvider.getAccessTokenExpiration() / 1000);

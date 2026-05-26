@@ -182,9 +182,13 @@ up: env infra-up infra-init-db ## 一键启动完整开发环境（需先安装 
 	@printf '\033[32m%s\033[0m\n' '开发环境就绪！运行 make dev 启动前后端'
 
 dev: ## 同时启动后端 API 和前端开发服务器（需先 make up）
+	@printf '\033[33m%s\033[0m\n' '终止占用 8080 端口的进程...'
+	@fuser -k 8080/tcp 2>/dev/null || true
 	@printf '\033[33m%s\033[0m\n' '启动后端 API...'
 	$(GRADLE) api:bootRun &
 	@sleep 5
+	@printf '\033[33m%s\033[0m\n' '终止占用 3000 端口的进程...'
+	@fuser -k 3000/tcp 2>/dev/null || true
 	@printf '\033[33m%s\033[0m\n' '启动前端开发服务器...'
 	$(PNPM) dev
 

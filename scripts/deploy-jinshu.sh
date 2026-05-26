@@ -46,9 +46,10 @@ tar czf - -C "$WORK_DIR/frontend" . | kubectl exec -i -n gitea "$POD" -c dind --
 
 # Login to registry
 echo "=== Login to $REGISTRY ==="
-kubectl exec -n gitea "$POD" -c dind -- sh -c "
-  echo \"$GITEA_TOKEN\" | docker login -u admin --password-stdin $REGISTRY
-"
+echo "=== Token length: ${#GITEA_TOKEN} ==="
+kubectl exec -n gitea "$POD" -c dind -- sh <<DOCKERCMD
+  echo "$GITEA_TOKEN" | docker login -u admin --password-stdin $REGISTRY
+DOCKERCMD
 
 # Build backend
 echo "=== Building backend ==="

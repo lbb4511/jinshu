@@ -32,7 +32,7 @@ const request = axios.create({
  */
 request.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('jinshu_token')
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
     }
