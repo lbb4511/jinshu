@@ -1,5 +1,5 @@
 # CI/CD Pipeline for Gitea Actions
-# 通过 SSH 发送代码到开发服务器，在 DinD 内用 Docker 容器编译构建
+# 完全基于 Gitea 内部服务，不依赖 GitHub
 
 name: CI/CD Pipeline
 
@@ -12,12 +12,18 @@ env:
   SSH_HOST: 192.168.3.11
   SSH_USER: dev
   REGISTRY: 10.43.170.83:3000
+  GITEA_URL: http://gitea-http.gitea.svc.cluster.local:3000
 
 jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        env:
+          TOKEN: ${{ gitea.token }}
+        run: |
+          git clone http://git:${TOKEN}@gitea-http.gitea.svc.cluster.local:3000/admin/jinshu.git .
+          git checkout ${{ gitea.sha }}
 
       - name: Setup SSH & run CI
         run: |
@@ -33,10 +39,15 @@ jobs:
 
   deploy:
     needs: ci
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: gitea.ref == 'refs/heads/main' && gitea.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        env:
+          TOKEN: ${{ gitea.token }}
+        run: |
+          git clone http://git:${TOKEN}@gitea-http.gitea.svc.cluster.local:3000/admin/jinshu.git .
+          git checkout ${{ gitea.sha }}
 
       - name: Setup SSH & deploy
         run: |
