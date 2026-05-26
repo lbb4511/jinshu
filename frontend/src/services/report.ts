@@ -49,3 +49,11 @@ export async function publishReport(id: number): Promise<Report> {
   const res = await request.post<Result<Report>>(`/reports/${id}/publish`)
   return res.data.data
 }
+
+export async function previewReport(id: number): Promise<string> {
+  const res = await request.get<string>(`/reports/${id}/preview`, {
+    responseType: 'text',
+    headers: { Accept: 'text/html' },
+  })
+  return res.data
+}

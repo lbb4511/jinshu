@@ -77,13 +77,18 @@ INSERT INTO meta.report_metadata (
 -- 报表数据：预聚合的统计结果（宽表模式）
 TRUNCATE TABLE data.report_data RESTART IDENTITY;
 
-INSERT INTO data.report_data (tenant_id, report_id, row_no, data_json) VALUES
-(1, 1, 1, '{"region":"华东","category":"软件服务","order_count":3,"total_amount":320000.00,"total_quantity":19}'::jsonb),
-(1, 1, 2, '{"region":"华东","category":"云计算","order_count":2,"total_amount":72000.00,"total_quantity":5}'::jsonb),
-(1, 1, 3, '{"region":"华北","category":"软件服务","order_count":1,"total_amount":320000.00,"total_quantity":1}'::jsonb),
-(1, 1, 4, '{"region":"华北","category":"云计算","order_count":1,"total_amount":56000.00,"total_quantity":4}'::jsonb),
-(1, 1, 5, '{"region":"华南","category":"软件服务","order_count":2,"total_amount":454000.00,"total_quantity":2}'::jsonb),
-(1, 1, 6, '{"region":"华南","category":"云计算","order_count":1,"total_amount":18000.00,"total_quantity":6}'::jsonb),
-(1, 1, 7, '{"region":"西南","category":"软件服务","order_count":1,"total_amount":86000.00,"total_quantity":1}'::jsonb),
-(1, 1, 8, '{"region":"西南","category":"云计算","order_count":1,"total_amount":72000.00,"total_quantity":5}'::jsonb),
-(1, 1, 9, '{"region":"华中","category":"软件服务","order_count":1,"total_amount":64000.00,"total_quantity":2}'::jsonb);
+INSERT INTO data.report_data (tenant_id, report_id, row_no, data_json)
+SELECT 1, id, row.row_no, row.data_json
+FROM meta.report_metadata
+CROSS JOIN LATERAL (VALUES
+    (1, '{"region":"华东","category":"软件服务","order_count":3,"total_amount":320000.00,"total_quantity":19}'::jsonb),
+    (2, '{"region":"华东","category":"云计算","order_count":2,"total_amount":72000.00,"total_quantity":5}'::jsonb),
+    (3, '{"region":"华北","category":"软件服务","order_count":1,"total_amount":320000.00,"total_quantity":1}'::jsonb),
+    (4, '{"region":"华北","category":"云计算","order_count":1,"total_amount":56000.00,"total_quantity":4}'::jsonb),
+    (5, '{"region":"华南","category":"软件服务","order_count":2,"total_amount":454000.00,"total_quantity":2}'::jsonb),
+    (6, '{"region":"华南","category":"云计算","order_count":1,"total_amount":18000.00,"total_quantity":6}'::jsonb),
+    (7, '{"region":"西南","category":"软件服务","order_count":1,"total_amount":86000.00,"total_quantity":1}'::jsonb),
+    (8, '{"region":"西南","category":"云计算","order_count":1,"total_amount":72000.00,"total_quantity":5}'::jsonb),
+    (9, '{"region":"华中","category":"软件服务","order_count":1,"total_amount":64000.00,"total_quantity":2}'::jsonb)
+) AS row(row_no, data_json)
+WHERE meta.report_metadata.tenant_id = 1 AND meta.report_metadata.name = '2025年销售订单统计报表';

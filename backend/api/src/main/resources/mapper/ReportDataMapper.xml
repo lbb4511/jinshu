@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinshu.api.dao.ReportDataMapper">
+
+    <select id="selectByReportId" resultType="java.util.HashMap">
+        SELECT row_no, data_json::text as data_json_text
+        FROM data.report_data
+        WHERE tenant_id = #{tenantId} AND report_id = #{reportId}
+        ORDER BY row_no
+    </select>
+
+</mapper>

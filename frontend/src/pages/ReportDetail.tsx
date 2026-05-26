@@ -245,6 +245,8 @@ export default function ReportDetail() {
           )}
           {isPublished && (
             <>
+              <Button label="HTML 预览" icon="pi pi-eye" severity="info" className="p-mr-2"
+                onClick={() => navigate(`/reports/${report.id}/preview`)} />
               <Button label="导出 Excel" icon="pi pi-file-excel" severity="info" className="p-mr-2"
                 onClick={() => handleExport('EXCEL')} loading={exportLoading} disabled={exportLoading} />
               <Button label="导出 CSV" icon="pi pi-file" severity="info" className="p-mr-2"

@@ -16,7 +16,7 @@ spring:
       maximum-pool-size: 20  # 最大连接数
       minimum-idle: 5         # 最小空闲连接
       connection-timeout: 30000 # 连接超时（毫秒）
-      connection-init-sql: SET search_path TO sys,meta,data,workflow,audit,task
+      connection-init-sql: SET search_path TO sys,meta,data,workflow,audit,task,public
 
   # Redis配置
   data:

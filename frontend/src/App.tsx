@@ -3,6 +3,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import ReportList from './pages/ReportList'
 import ReportDetail from './pages/ReportDetail'
+import ReportPreview from './pages/ReportPreview'
 import TaskCenter from './pages/TaskCenter'
 import DataSourceList from './pages/DataSourceList'
 import AuditLogViewer from './pages/AuditLogViewer'
@@ -27,6 +28,11 @@ export default function App() {
         <Route path="/datasources" element={<DataSourceList />} />
         <Route path="/audit" element={<AuditLogViewer />} />
       </Route>
+      <Route path="/reports/:id/preview" element={
+        <AuthGuard>
+          <ReportPreview />
+        </AuthGuard>
+      } />
     </Routes>
   )
 }
