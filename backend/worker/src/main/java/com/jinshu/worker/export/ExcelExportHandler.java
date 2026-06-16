@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +20,15 @@ public class ExcelExportHandler {
 
     public void export(Long taskId, Long reportId, String outputPath) {
         log.info("Starting Excel export: taskId={}, outputPath={}", taskId, outputPath);
+
+        try {
+            Path outputDir = Path.of(outputPath).getParent();
+            if (outputDir != null) {
+                Files.createDirectories(outputDir);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create output directory: " + outputPath, e);
+        }
 
         EasyExcel.write(outputPath)
                 .head(getHeader())

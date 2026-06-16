@@ -90,18 +90,6 @@ spec:
               key: jinshu_file_base_path
         - name: JINSHU_IMPORT_QUEUE
           value: "jinshu.import.task"
-        livenessProbe:
-          httpGet:
-            path: /api/live
-            port: 8080
-          initialDelaySeconds: 60
-          periodSeconds: 30
-        readinessProbe:
-          httpGet:
-            path: /api/ready
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
         volumeMounts:
         - name: data
           mountPath: /data/jinshu
