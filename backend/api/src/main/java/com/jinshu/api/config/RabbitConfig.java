@@ -12,7 +12,7 @@ public class RabbitConfig {
     @Value("${jinshu.export.queue:jinshu.export}")
     private String exportQueue;
 
-    @Value("${jinshu.import.queue:P4}")
+    @Value("${jinshu.import.queue:jinshu.import.task}")
     private String importQueue;
 
     @Bean

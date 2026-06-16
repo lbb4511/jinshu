@@ -9,11 +9,19 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitConfig {
 
+    @Value("${jinshu.export.queue:jinshu.export}")
+    private String exportQueue;
+
     @Value("${jinshu.render.queue:jinshu.render}")
     private String renderQueue;
 
     @Value("${jinshu.render.segment.queue:jinshu.render.segment}")
     private String renderSegmentQueue;
+
+    @Bean
+    public Queue exportQueue() {
+        return new Queue(exportQueue, true);
+    }
 
     @Bean
     public Queue renderQueue() {
