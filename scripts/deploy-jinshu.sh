@@ -10,6 +10,7 @@ WORKER_IMAGE="$REGISTRY/admin/jinshu-worker"
 BATCH_IMAGE="$REGISTRY/admin/jinshu-batch"
 FRONTEND_IMAGE="$REGISTRY/admin/jinshu-frontend"
 RENDERER_IMAGE="$REGISTRY/admin/jinshu-renderer"
+RENDERER_BASE_IMAGE="$REGISTRY/admin/jinshu-renderer-base"
 NAMESPACE="${NAMESPACE:-jinshu}"
 GITEA_SHA="${1:-latest}"
 GITEA_TAG="${2:-}"
@@ -92,11 +93,24 @@ kubectl exec -n gitea "$POD" -c dind -- sh -c "
   docker push $FRONTEND_IMAGE:latest
 "
 
+# Ensure renderer base image exists; build & push if missing
+echo "=== Ensuring renderer base image ==="
+kubectl exec -n gitea "$POD" -c dind -- sh -c "
+  if docker pull $RENDERER_BASE_IMAGE:latest 2>/dev/null; then
+    echo 'Base image $RENDERER_BASE_IMAGE:latest already exists, reusing.'
+  else
+    echo 'Base image not found, building $RENDERER_BASE_IMAGE:latest...'
+    DOCKER_BUILDKIT=1 docker build -f /tmp/renderer/Dockerfile.base -t $RENDERER_BASE_IMAGE:latest /tmp/renderer
+    echo 'Pushing renderer base image...'
+    docker push $RENDERER_BASE_IMAGE:latest
+  fi
+"
+
 # Build renderer
 echo "=== Building renderer ==="
 kubectl exec -n gitea "$POD" -c dind -- sh -c "
   echo 'Building renderer...'
-  DOCKER_BUILDKIT=1 docker build -t $RENDERER_IMAGE:$GITEA_SHA /tmp/renderer
+  DOCKER_BUILDKIT=1 docker build --build-arg BASE_IMAGE=$RENDERER_BASE_IMAGE:latest -t $RENDERER_IMAGE:$GITEA_SHA /tmp/renderer
   docker tag $RENDERER_IMAGE:$GITEA_SHA $RENDERER_IMAGE:latest
   echo 'Pushing renderer...'
   docker push $RENDERER_IMAGE:$GITEA_SHA

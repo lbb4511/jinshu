@@ -31,12 +31,14 @@ CREATE TABLE IF NOT EXISTS sys.tenant (
     name            VARCHAR(128) NOT NULL,
     code            VARCHAR(64) NOT NULL UNIQUE,
     status          VARCHAR(16) NOT NULL DEFAULT 'ACTIVE',
+    description     TEXT,
     quota_config    JSONB,
     created_at      TIMESTAMP DEFAULT NOW(),
     updated_at      TIMESTAMP DEFAULT NOW()
 );
 
 COMMENT ON TABLE sys.tenant IS '租户表';
+COMMENT ON COLUMN sys.tenant.description IS '租户描述';
 COMMENT ON COLUMN sys.tenant.quota_config IS '配额配置：存储容量、并发任务数等';
 
 CREATE TABLE IF NOT EXISTS sys.users (
@@ -52,6 +54,8 @@ CREATE TABLE IF NOT EXISTS sys.users (
     login_fail_count INTEGER NOT NULL DEFAULT 0,
     locked_until    TIMESTAMP,
     last_login_at   TIMESTAMP,
+    last_login_ip   VARCHAR(45),
+    password_updated_at TIMESTAMP,
     created_at      TIMESTAMP DEFAULT NOW(),
     updated_at      TIMESTAMP DEFAULT NOW(),
     UNIQUE(tenant_id, username)
@@ -69,6 +73,7 @@ CREATE TABLE IF NOT EXISTS meta.report_metadata (
     name            VARCHAR(255) NOT NULL,
     description     TEXT,
     category        VARCHAR(100),
+    status          VARCHAR(32) NOT NULL DEFAULT 'DRAFT',
     schema_version  INTEGER NOT NULL DEFAULT 1,
     columns_meta    JSONB DEFAULT '[]',
     data_source_id  BIGINT,
@@ -212,16 +217,16 @@ COMMENT ON TABLE audit.audit_root_hash IS '审计日志哈希根（每小时每�
 CREATE TABLE IF NOT EXISTS task.task (
     id              BIGSERIAL PRIMARY KEY,
     tenant_id       BIGINT NOT NULL,
-    type            VARCHAR(32) NOT NULL,
     status          VARCHAR(16) NOT NULL,
     priority        INTEGER NOT NULL DEFAULT 0,
-    config          JSONB,
+    parameters      TEXT,
     progress        INTEGER DEFAULT 0,
     error_message   TEXT,
     created_by      BIGINT,
     created_at      TIMESTAMP DEFAULT NOW(),
     started_at      TIMESTAMP,
-    completed_at    TIMESTAMP
+    completed_at    TIMESTAMP,
+    cancelled_at    TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_task_tenant_status ON task.task(tenant_id, status);
