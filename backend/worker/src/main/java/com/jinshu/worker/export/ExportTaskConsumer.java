@@ -20,7 +20,8 @@ public class ExportTaskConsumer {
     private final ObjectMapper objectMapper;
 
     @RabbitHandler
-    public void handleExportTask(ExportMessage message) {
+    public void handleExportTask(Map<String, Object> messageMap) {
+        ExportMessage message = objectMapper.convertValue(messageMap, ExportMessage.class);
         Long taskId = message.getTaskId();
         log.info("Received export task: taskId={}", taskId);
 

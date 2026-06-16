@@ -9,6 +9,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("org.springframework.boot:spring-boot-starter-json")
+    implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.1")
     implementation("org.postgresql:postgresql:42.7.11")
     implementation("com.alibaba:easyexcel:4.0.3")

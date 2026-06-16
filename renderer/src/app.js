@@ -1,7 +1,14 @@
 const amqp = require('amqplib');
 const winston = require('winston');
+const path = require('path');
+const fs = require('fs');
 const { BrowserPool } = require('./pool/BrowserPool');
 const { PdfRenderer } = require('./render/PdfRenderer');
+
+const LOG_DIR = process.env.LOG_DIR || '/var/log/renderer';
+if (!fs.existsSync(LOG_DIR)) {
+  fs.mkdirSync(LOG_DIR, { recursive: true });
+}
 
 const logger = winston.createLogger({
   level: 'info',
@@ -11,8 +18,8 @@ const logger = winston.createLogger({
   ),
   transports: [
     new winston.transports.Console({ format: winston.format.simple() }),
-    new winston.transports.File({ filename: '/var/log/renderer/error.log', level: 'error' }),
-    new winston.transports.File({ filename: '/var/log/renderer/combined.log' })
+    new winston.transports.File({ filename: path.join(LOG_DIR, 'error.log'), level: 'error' }),
+    new winston.transports.File({ filename: path.join(LOG_DIR, 'combined.log') })
   ]
 });
 

@@ -33,13 +33,16 @@
 
     <update id="update">
         UPDATE task
-        SET status = #{status},
-            progress = #{progress},
-            parameters = #{parameters},
-            result = #{result},
-            error_message = #{errorMessage},
-            started_at = #{startedAt},
-            completed_at = #{completedAt}
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="progress != null">progress = #{progress},</if>
+            <if test="parameters != null">parameters = #{parameters},</if>
+            <if test="result != null">result = #{result},</if>
+            <if test="errorMessage != null">error_message = #{errorMessage},</if>
+            <if test="startedAt != null">started_at = #{startedAt},</if>
+            <if test="completedAt != null">completed_at = #{completedAt},</if>
+            <if test="cancelledAt != null">cancelled_at = #{cancelledAt},</if>
+        </set>
         WHERE id = #{id}
     </update>
 

@@ -19,7 +19,8 @@ public class PdfTaskConsumer {
     private final ObjectMapper objectMapper;
 
     @RabbitHandler
-    public void handlePdfTask(PdfRenderMessage message) {
+    public void handlePdfTask(Map<String, Object> messageMap) {
+        PdfRenderMessage message = objectMapper.convertValue(messageMap, PdfRenderMessage.class);
         Long taskId = message.getTaskId();
         log.info("Received PDF render task: taskId={}", taskId);
 

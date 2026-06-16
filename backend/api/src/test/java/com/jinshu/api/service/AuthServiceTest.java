@@ -91,7 +91,7 @@ class AuthServiceTest {
 
         Map<String, Object> result = authService.authenticate(USERNAME, PASSWORD);
 
-        assertThat(result.get("accessToken")).isEqualTo("access_token");
+        assertThat(result.get("token")).isEqualTo("access_token");
         assertThat(result.get("refreshToken")).isEqualTo("refresh_token");
         @SuppressWarnings("unchecked")
         Map<String, Object> userInfo = (Map<String, Object>) result.get("user");
@@ -190,7 +190,7 @@ class AuthServiceTest {
 
         Map<String, Object> result = authService.refreshToken("valid_refresh_token");
 
-        assertThat(result.get("accessToken")).isEqualTo("new_access_token");
+        assertThat(result.get("token")).isEqualTo("new_access_token");
     }
 
     @Test

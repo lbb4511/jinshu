@@ -1,5 +1,6 @@
 package com.jinshu.batch.consumer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jinshu.batch.dao.ImportErrorLogMapper;
 import com.jinshu.batch.dao.ReportDataMapper;
 import com.jinshu.batch.model.*;
@@ -12,6 +13,8 @@ import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 import java.util.HashSet;
 import java.util.List;
@@ -28,16 +31,21 @@ public class ImportTaskConsumer {
 
     private final ImportErrorLogMapper errorLogMapper;
 
+    private final ObjectMapper objectMapper;
+
     public ImportTaskConsumer(StringRedisTemplate redisTemplate,
                               ReportDataMapper reportDataMapper,
-                              ImportErrorLogMapper errorLogMapper) {
+                              ImportErrorLogMapper errorLogMapper,
+                              ObjectMapper objectMapper) {
         this.redisTemplate = redisTemplate;
         this.reportDataMapper = reportDataMapper;
         this.errorLogMapper = errorLogMapper;
+        this.objectMapper = objectMapper;
     }
 
     @RabbitHandler
-    public void handleImportTask(ImportTaskMessage message) {
+    public void handleImportTask(Map<String, Object> messageMap) {
+        ImportTaskMessage message = objectMapper.convertValue(messageMap, ImportTaskMessage.class);
         Long taskId = message.getTaskId();
         log.info("Received import task: taskId={}, filePath={}", taskId, message.getFilePath());
 

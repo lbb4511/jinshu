@@ -3,6 +3,7 @@ package com.jinshu.worker.export;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -15,6 +16,7 @@ public class ExportProgressTracker {
     private static final String KEY_PREFIX = "jinshu:export:progress:";
 
     private final StringRedisTemplate redisTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     public void init(Long taskId) {
         String key = key(taskId);
@@ -26,6 +28,7 @@ public class ExportProgressTracker {
 
     public void updateStatus(Long taskId, String status) {
         redisTemplate.opsForHash().put(key(taskId), "status", status);
+        jdbcTemplate.update("UPDATE task.task SET status = ? WHERE id = ?", status, taskId);
     }
 
     public void updateProgress(Long taskId, int processedRows) {
@@ -34,7 +37,14 @@ public class ExportProgressTracker {
     }
 
     public String getTaskConfig(Long taskId) {
-        return (String) redisTemplate.opsForHash().get("jinshu:task:config:" + taskId, "config");
+        String config = (String) redisTemplate.opsForHash().get("jinshu:task:config:" + taskId, "config");
+        if (config == null) {
+            config = jdbcTemplate.queryForObject(
+                "SELECT parameters FROM task.task WHERE id = ?",
+                String.class,
+                taskId);
+        }
+        return config;
     }
 
     private String key(Long taskId) {
