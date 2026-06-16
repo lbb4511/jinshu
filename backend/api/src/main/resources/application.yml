@@ -83,7 +83,7 @@ jinshu:
   export:
     queue: jinshu.export        # 导出任务队列
   import:
-    queue: P4                   # 导入任务队列
+    queue: ${JINSHU_IMPORT_QUEUE:jinshu.import.task}  # 导入任务队列
 
 # 日志配置
 logging:

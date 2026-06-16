@@ -6,7 +6,7 @@ metadata:
   labels:
     app: jinshu-renderer
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: jinshu-renderer
@@ -43,6 +43,8 @@ spec:
             secretKeyRef:
               name: jinshu-secret
               key: rabbitmq_password
+        - name: RABBITMQ_URL
+          value: "amqp://$(RABBITMQ_USER):$(RABBITMQ_PASSWORD)@$(RABBITMQ_HOST):$(RABBITMQ_PORT)"
         - name: JINSHU_FILE_BASE_PATH
           valueFrom:
             configMapKeyRef:
@@ -80,11 +82,11 @@ spec:
           mountPath: /data/temp
         resources:
           requests:
-            memory: "2Gi"
-            cpu: "1"
+            memory: "512Mi"
+            cpu: "250m"
           limits:
-            memory: "4Gi"
-            cpu: "2"
+            memory: "1Gi"
+            cpu: "500m"
       volumes:
       - name: data
         persistentVolumeClaim:

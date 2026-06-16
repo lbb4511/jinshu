@@ -6,7 +6,7 @@ metadata:
   labels:
     app: jinshu-backend
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -93,6 +93,8 @@ spec:
             configMapKeyRef:
               name: jinshu-config
               key: jinshu_file_base_path
+        - name: JINSHU_IMPORT_QUEUE
+          value: "jinshu.import.task"
         livenessProbe:
           httpGet:
             path: /api/live
@@ -111,10 +113,10 @@ spec:
         resources:
           requests:
             memory: "512Mi"
-            cpu: "500m"
+            cpu: "250m"
           limits:
             memory: "1Gi"
-            cpu: "1000m"
+            cpu: "500m"
       volumes:
       - name: data
         persistentVolumeClaim:
@@ -128,7 +130,7 @@ metadata:
   labels:
     app: jinshu-frontend
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:

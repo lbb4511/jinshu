@@ -37,7 +37,7 @@ mybatis:
 
 jinshu:
   import:
-    queue: P4
+    queue: ${JINSHU_IMPORT_QUEUE:jinshu.import.task}
     batch-size: 1000
     max-error-rate: 0.3
     shard:
