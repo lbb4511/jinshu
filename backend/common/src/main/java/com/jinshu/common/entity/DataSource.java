@@ -1,5 +1,6 @@
 package com.jinshu.common.entity;
 
+import com.jinshu.common.security.EncryptField;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -23,6 +24,7 @@ public class DataSource {
 
     private String username;
 
+    @EncryptField
     private String connectionConfig;
 
     private String status;

@@ -27,11 +27,17 @@ export default function AppLayout() {
     {
       label: '报表管理',
       icon: 'pi pi-file',
+      className: isActive('/reports') ? 'p-menuitem-active' : '',
       items: [
         {
           label: '报表列表',
           icon: 'pi pi-list',
           command: () => navigate('/reports'),
+        },
+        {
+          label: '新建报表',
+          icon: 'pi pi-plus',
+          command: () => navigate('/reports/new'),
         },
       ],
     },
@@ -48,11 +54,25 @@ export default function AppLayout() {
       className: isActive('/tasks') ? 'p-menuitem-active' : '',
     },
     {
+      label: '用户管理',
+      icon: 'pi pi-users',
+      command: () => navigate('/users'),
+      className: isActive('/users') ? 'p-menuitem-active' : '',
+    },
+    {
       label: '审计日志',
       icon: 'pi pi-history',
       command: () => navigate('/audit'),
       className: isActive('/audit') ? 'p-menuitem-active' : '',
     },
+    ...(user?.role === 'ADMIN'
+      ? [{
+          label: '租户管理',
+          icon: 'pi pi-building',
+          command: () => navigate('/tenants'),
+          className: isActive('/tenants') ? 'p-menuitem-active' : '',
+        }]
+      : []),
   ]
 
   const end = (

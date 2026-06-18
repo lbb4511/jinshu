@@ -46,6 +46,10 @@ mybatis:
     map-underscore-to-camel-case: true
 
 jinshu:
+  encryption:
+    keys:
+      1: ${JINSHU_ENCRYPTION_KEY_V1:Wi3DdD12Qg1KkvPcS530swxnrzSWCnQN0x3OPCJk8zU=}
+    latest-version: ${JINSHU_ENCRYPTION_LATEST_VERSION:1}
   import:
     queue: ${JINSHU_IMPORT_QUEUE:jinshu.import.task}
     batch-size: 1000

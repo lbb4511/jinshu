@@ -93,6 +93,8 @@ export default function ReportList() {
     <div className="report-actions">
       <Button icon="pi pi-eye" rounded text severity="info" tooltip="查看"
         onClick={() => navigate(`/reports/${row.id}`)} />
+      <Button icon="pi pi-pencil" rounded text severity="warning" tooltip="编辑"
+        onClick={() => navigate(`/reports/${row.id}/edit`)} />
       <Button icon="pi pi-trash" rounded text severity="danger" tooltip="删除"
         onClick={() => handleDelete(row)} />
     </div>

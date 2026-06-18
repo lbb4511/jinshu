@@ -231,6 +231,10 @@ export default function ReportDetail() {
           <Tag value={STATUS_LABEL[report.status] || report.status} severity={STATUS_SEVERITY[report.status] || 'info'} />
         </div>
         <div className="detail-header-actions">
+          {(isDraft || isRejected) && (
+            <Button label="编辑" icon="pi pi-pencil" className="p-mr-2"
+              onClick={() => navigate(`/reports/${report.id}/edit`)} />
+          )}
           {isDraft && (
             <Button label="提交审批" icon="pi pi-send" onClick={() => setSubmitDialogVisible(true)} />
           )}

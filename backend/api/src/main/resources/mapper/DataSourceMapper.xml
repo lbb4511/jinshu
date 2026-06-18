@@ -11,7 +11,8 @@
         <result column="port" property="port"/>
         <result column="database_name" property="databaseName"/>
         <result column="username" property="username"/>
-        <result column="connection_config" property="connectionConfig"/>
+        <result column="connection_config" property="connectionConfig"
+                typeHandler="com.jinshu.common.security.EncryptTypeHandler"/>
         <result column="status" property="status"/>
         <result column="last_test_time" property="lastTestTime"/>
         <result column="last_test_result" property="lastTestResult"/>
@@ -85,7 +86,8 @@
         INSERT INTO data_source (tenant_id, name, type, host, port, database_name, username,
                               connection_config, status, description, created_by, created_at, updated_at)
         VALUES (#{tenantId}, #{name}, #{type}, #{host}, #{port}, #{databaseName}, #{username},
-                #{connectionConfig}, #{status}, #{description}, #{createdBy}, #{createdAt}, #{updatedAt})
+                #{connectionConfig, typeHandler=com.jinshu.common.security.EncryptTypeHandler},
+                #{status}, #{description}, #{createdBy}, #{createdAt}, #{updatedAt})
     </insert>
 
     <update id="update">
@@ -96,7 +98,7 @@
             port = #{port},
             database_name = #{databaseName},
             username = #{username},
-            connection_config = #{connectionConfig},
+            connection_config = #{connectionConfig, typeHandler=com.jinshu.common.security.EncryptTypeHandler},
             status = #{status},
             last_test_time = #{lastTestTime},
             last_test_result = #{lastTestResult},

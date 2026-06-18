@@ -1,5 +1,5 @@
 import request from './request'
-import type { Result, PageResult, Report } from '../types'
+import type { Result, PageResult, Report, ReportCreateRequest, ReportUpdateRequest } from '../types'
 
 export async function listReports(params: {
   name?: string
@@ -20,13 +20,13 @@ export async function deleteReport(id: number): Promise<void> {
   await request.delete(`/reports/${id}`)
 }
 
-export async function createReport(data: {
-  name: string
-  description?: string
-  dataSourceId?: number
-  templateConfig?: string
-}): Promise<Report> {
+export async function createReport(data: ReportCreateRequest): Promise<Report> {
   const res = await request.post<Result<Report>>('/reports', data)
+  return res.data.data
+}
+
+export async function updateReport(id: number, data: ReportUpdateRequest): Promise<Report> {
+  const res = await request.put<Result<Report>>(`/reports/${id}`, data)
   return res.data.data
 }
 

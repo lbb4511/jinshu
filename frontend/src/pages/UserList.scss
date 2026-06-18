@@ -1,0 +1,40 @@
+.user-list-page {
+  .page-title {
+    font-size: 22px;
+    color: #333;
+    margin-bottom: 16px;
+  }
+
+  .user-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .role-dropdown {
+    width: 150px;
+  }
+
+  .user-actions {
+    display: flex;
+    gap: 4px;
+  }
+
+  .user-form {
+    .field {
+      margin-bottom: 16px;
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: #555;
+        font-size: 14px;
+      }
+
+      .p-inputtext, .p-dropdown, .p-inputwrapper {
+        width: 100%;
+      }
+    }
+  }
+}

@@ -60,6 +60,10 @@ server:
 
 # 锦书系统配置
 jinshu:
+  encryption:
+    keys:
+      1: ${JINSHU_ENCRYPTION_KEY_V1:Wi3DdD12Qg1KkvPcS530swxnrzSWCnQN0x3OPCJk8zU=}
+    latest-version: ${JINSHU_ENCRYPTION_LATEST_VERSION:1}
   tenant:
     enabled: true
   audit:

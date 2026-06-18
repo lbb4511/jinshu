@@ -4,14 +4,32 @@ export interface Tenant {
   code: string
   status: string
   quotaConfig?: string
+  description?: string
   createdAt: string
   updatedAt: string
+}
+
+export interface TenantCreateRequest {
+  name: string
+  code: string
+  description?: string
+  adminUsername?: string
+  adminPassword?: string
+  adminEmail?: string
+  quotaConfig?: Record<string, unknown>
+}
+
+export interface TenantUpdateRequest {
+  name?: string
+  description?: string
+  quotaConfig?: Record<string, unknown>
 }
 
 export interface User {
   id: number
   tenantId: number
   username: string
+  displayName?: string
   email?: string
   role: string
   status: string
@@ -105,6 +123,20 @@ export interface AuthState {
   token: string | null
   loading: boolean
   isAuthenticated: boolean
+}
+
+export interface ReportCreateRequest {
+  name: string
+  description?: string
+  dataSourceId?: number
+  templateConfig?: string
+}
+
+export interface ReportUpdateRequest {
+  name?: string
+  description?: string
+  dataSourceId?: number
+  templateConfig?: string
 }
 
 export interface DataSourceCreateRequest {

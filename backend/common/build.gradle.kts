@@ -9,6 +9,7 @@ dependencyManagement {
     }
     dependencies {
         dependency("org.projectlombok:lombok:1.18.46")
+        dependency("org.mybatis:mybatis:3.5.19")
     }
 }
 
@@ -21,6 +22,7 @@ dependencies {
     api("org.flywaydb:flyway-core")
     api("org.flywaydb:flyway-database-postgresql")
     api("io.jsonwebtoken:jjwt-api:0.12.6")
+    api("org.mybatis:mybatis")
     implementation("io.jsonwebtoken:jjwt-impl:0.12.6")
     implementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
 

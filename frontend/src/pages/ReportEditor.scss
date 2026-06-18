@@ -1,0 +1,66 @@
+.report-editor-page {
+  max-width: 800px;
+  margin: 0 auto;
+
+  .editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+
+    .editor-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .editor-title {
+      font-size: 24px;
+      color: #333;
+      margin: 0;
+    }
+
+    .editor-header-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+  }
+
+  .editor-card {
+    .editor-loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .editor-form {
+      .field {
+        margin-bottom: 20px;
+
+        label {
+          display: block;
+          margin-bottom: 6px;
+          font-weight: 500;
+          color: #555;
+          font-size: 14px;
+        }
+
+        .p-inputtext,
+        .p-dropdown,
+        .p-inputtextarea {
+          width: 100%;
+        }
+
+        .field-hint {
+          display: block;
+          margin-top: 6px;
+          color: #888;
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}
