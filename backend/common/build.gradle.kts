@@ -17,6 +17,8 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok")
     api("org.springframework.boot:spring-boot-starter-web")
     api("org.springframework.boot:spring-boot-starter-data-redis")
+    api("org.flywaydb:flyway-core")
+    api("org.flywaydb:flyway-database-postgresql")
     api("io.jsonwebtoken:jjwt-api:0.12.6")
     implementation("io.jsonwebtoken:jjwt-impl:0.12.6")
     implementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
