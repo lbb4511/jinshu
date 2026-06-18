@@ -15,6 +15,7 @@
         <result column="user_agent" property="userAgent"/>
         <result column="status" property="status"/>
         <result column="error_message" property="errorMessage"/>
+        <result column="duration" property="duration"/>
         <result column="log_hash" property="logHash"/>
         <result column="previous_hash" property="previousHash"/>
         <result column="created_at" property="createdAt"/>
@@ -23,11 +24,11 @@
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO audit.audit_log
             (tenant_id, user_id, username, operation, target_type, target_id, target_name,
-             ip_address, user_agent, request_params, status, error_message, created_at,
+             ip_address, user_agent, request_params, status, error_message, duration, created_at,
              log_hash, previous_hash)
         VALUES
             (#{tenantId}, #{userId}, #{username}, #{operation}, #{targetType}, #{targetId}, #{targetName},
-             #{ipAddress}, #{userAgent}, #{requestParams}::jsonb, #{status}, #{errorMessage}, #{createdAt},
+             #{ipAddress}, #{userAgent}, #{requestParams}::jsonb, #{status}, #{errorMessage}, #{duration}, #{createdAt},
              #{logHash}, #{previousHash})
     </insert>
 
@@ -63,7 +64,7 @@
 
     <select id="selectList" resultMap="AuditLogResultMap">
         SELECT id, tenant_id, user_id, username, operation, target_type, target_id, target_name,
-               ip_address, user_agent, status, error_message, log_hash, previous_hash, created_at
+               ip_address, user_agent, status, error_message, duration, log_hash, previous_hash, created_at
         FROM audit.audit_log
         WHERE tenant_id = #{tenantId}
         <if test="userId != null">
@@ -114,7 +115,7 @@
 
     <select id="selectByHour" resultMap="AuditLogResultMap">
         SELECT id, tenant_id, user_id, username, operation, target_type, target_id, target_name,
-               ip_address, user_agent, status, error_message, log_hash, previous_hash, created_at
+               ip_address, user_agent, status, error_message, duration, log_hash, previous_hash, created_at
         FROM audit.audit_log
         WHERE tenant_id = #{tenantId}
           AND created_at &gt;= #{hourStart}

@@ -33,6 +33,8 @@ public class AuditLogEntry {
 
     private String errorMessage;
 
+    private Integer duration;
+
     private String logHash;
 
     private String previousHash;

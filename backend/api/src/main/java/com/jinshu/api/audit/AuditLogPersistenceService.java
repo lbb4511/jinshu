@@ -178,6 +178,7 @@ public class AuditLogPersistenceService {
         entry.setRequestParams(serializeParams(event.getRequestParams()));
         entry.setStatus(event.getStatus());
         entry.setErrorMessage(event.getErrorMessage());
+        entry.setDuration(event.getDuration());
         entry.setCreatedAt(event.getCreatedAt() != null ? event.getCreatedAt() : LocalDateTime.now());
         entry.setLogHash(logHash);
         entry.setPreviousHash(previousHash);

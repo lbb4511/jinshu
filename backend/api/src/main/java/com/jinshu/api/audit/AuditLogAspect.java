@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jinshu.common.context.TenantContext;
 import com.jinshu.common.context.UserContext;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -21,9 +23,11 @@ import java.util.Map;
 @Slf4j
 @Aspect
 @Component
+@RequiredArgsConstructor
+@ConditionalOnProperty(name = "jinshu.audit.enabled", havingValue = "true", matchIfMissing = true)
 public class AuditLogAspect {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Around("@annotation(com.jinshu.common.audit.AuditLog)")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -45,6 +49,8 @@ public class AuditLogAspect {
         Object result = null;
         String status = "SUCCESS";
         String errorMessage = null;
+        long startTime = System.currentTimeMillis();
+        long duration = 0;
 
         try {
             result = joinPoint.proceed();
@@ -53,6 +59,7 @@ public class AuditLogAspect {
             errorMessage = e.getMessage();
             throw e;
         } finally {
+            duration = System.currentTimeMillis() - startTime;
             try {
                 com.jinshu.common.audit.AuditLogEvent event = com.jinshu.common.audit.AuditLogEvent.builder()
                         .tenantId(TenantContext.getTenantId())
@@ -67,6 +74,7 @@ public class AuditLogAspect {
                         .requestParams(serializeParams(requestParams))
                         .status(status)
                         .errorMessage(errorMessage)
+                        .duration((int) duration)
                         .createdAt(LocalDateTime.now())
                         .build();
 

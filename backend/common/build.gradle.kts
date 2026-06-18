@@ -17,6 +17,7 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok")
     api("org.springframework.boot:spring-boot-starter-web")
     api("org.springframework.boot:spring-boot-starter-data-redis")
+    api("org.springframework.boot:spring-boot-starter-cache")
     api("org.flywaydb:flyway-core")
     api("org.flywaydb:flyway-database-postgresql")
     api("io.jsonwebtoken:jjwt-api:0.12.6")

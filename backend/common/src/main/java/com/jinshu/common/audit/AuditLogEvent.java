@@ -33,6 +33,8 @@ public class AuditLogEvent {
 
     private String errorMessage;
 
+    private Integer duration;
+
     private LocalDateTime createdAt;
 
     private String logHash;
