@@ -95,6 +95,11 @@ spec:
               key: jinshu_file_base_path
         - name: JINSHU_IMPORT_QUEUE
           value: "jinshu.import.task"
+        - name: JINSHU_ENCRYPTION_KEY_V1
+          valueFrom:
+            secretKeyRef:
+              name: jinshu-encryption-keys
+              key: key-v1
         livenessProbe:
           httpGet:
             path: /api/v1/live
