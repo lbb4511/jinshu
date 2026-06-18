@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinshu.api.dao.RateLimitConfigMapper">
+
+    <resultMap id="BaseResultMap" type="com.jinshu.common.entity.RateLimitConfig">
+        <id column="id" property="id"/>
+        <result column="tenant_id" property="tenantId"/>
+        <result column="scope" property="scope"/>
+        <result column="resource_pattern" property="resourcePattern"/>
+        <result column="max_requests" property="maxRequests"/>
+        <result column="window_seconds" property="windowSeconds"/>
+        <result column="enabled" property="enabled"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="selectByScopeAndTenant" resultMap="BaseResultMap">
+        SELECT id, tenant_id, scope, resource_pattern, max_requests, window_seconds, enabled, created_at, updated_at
+        FROM rate_limit_config
+        WHERE scope = #{scope}
+          AND tenant_id = #{tenantId}
+          AND enabled = true
+        LIMIT 1
+    </select>
+
+    <select id="selectGlobalByScope" resultMap="BaseResultMap">
+        SELECT id, tenant_id, scope, resource_pattern, max_requests, window_seconds, enabled, created_at, updated_at
+        FROM rate_limit_config
+        WHERE scope = #{scope}
+          AND tenant_id IS NULL
+          AND enabled = true
+        LIMIT 1
+    </select>
+
+</mapper>

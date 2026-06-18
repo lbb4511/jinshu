@@ -1,5 +1,7 @@
 package com.jinshu.common.entity;
 
+import com.jinshu.common.security.DesensitizeField;
+import com.jinshu.common.security.DesensitizeType;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -40,6 +42,7 @@ public class User {
     /**
      * 邮箱地址
      */
+    @DesensitizeField(type = DesensitizeType.EMAIL, resourceType = "users", fieldName = "email")
     private String email;
 
     /**
@@ -55,6 +58,7 @@ public class User {
     /**
      * 显示名称
      */
+    @DesensitizeField(type = DesensitizeType.NAME, resourceType = "users", fieldName = "display_name")
     private String displayName;
 
     /**

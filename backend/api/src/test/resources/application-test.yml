@@ -47,3 +47,5 @@ jinshu:
     enabled: false
   file:
     base-path: /tmp/jinshu-test
+  ratelimit:
+    enabled: false

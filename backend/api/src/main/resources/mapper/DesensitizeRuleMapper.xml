@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinshu.api.dao.DesensitizeRuleMapper">
+
+    <resultMap id="BaseResultMap" type="DesensitizeRule">
+        <id column="id" property="id"/>
+        <result column="tenant_id" property="tenantId"/>
+        <result column="table_name" property="tableName"/>
+        <result column="column_name" property="columnName"/>
+        <result column="rule_type" property="ruleType"/>
+        <result column="applicable_roles" property="applicableRoles"/>
+        <result column="enabled" property="enabled"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="selectByTenantAndField" resultMap="BaseResultMap">
+        SELECT id, tenant_id, table_name, column_name, rule_type, applicable_roles, enabled, created_at, updated_at
+        FROM sys.desensitize_rule
+        WHERE tenant_id = #{tenantId}
+          AND table_name = #{tableName}
+          AND column_name = #{columnName}
+    </select>
+
+    <select id="selectByTenantId" resultMap="BaseResultMap">
+        SELECT id, tenant_id, table_name, column_name, rule_type, applicable_roles, enabled, created_at, updated_at
+        FROM sys.desensitize_rule
+        WHERE tenant_id = #{tenantId}
+        ORDER BY table_name, column_name
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, tenant_id, table_name, column_name, rule_type, applicable_roles, enabled, created_at, updated_at
+        FROM sys.desensitize_rule
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys.desensitize_rule (tenant_id, table_name, column_name, rule_type, applicable_roles, enabled,
+                                          created_at, updated_at)
+        VALUES (#{tenantId}, #{tableName}, #{columnName}, #{ruleType}, #{applicableRoles}, #{enabled},
+                #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update">
+        UPDATE sys.desensitize_rule
+        SET tenant_id        = #{tenantId},
+            table_name       = #{tableName},
+            column_name      = #{columnName},
+            rule_type        = #{ruleType},
+            applicable_roles = #{applicableRoles},
+            enabled          = #{enabled},
+            updated_at       = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM sys.desensitize_rule WHERE id = #{id}
+    </delete>
+
+</mapper>

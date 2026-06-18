@@ -33,6 +33,7 @@ public class UserService {
     private final RoleChangeLogMapper roleChangeLogMapper;
     private final PasswordEncoder passwordEncoder;
     private final TokenVersionManager tokenVersionManager;
+    private final DesensitizeService desensitizeService;
 
     private static final Pattern PASSWORD_PATTERN = Pattern.compile(
             "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,}$"
@@ -83,6 +84,7 @@ public class UserService {
         if (!user.getTenantId().equals(tenantId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN, "无权操作");
         }
+        desensitizeService.desensitize(user);
         return user;
     }
 
@@ -91,7 +93,9 @@ public class UserService {
         int offset = (page - 1) * pageSize;
         List<User> users = userMapper.selectList(tenantId, username, role, offset, pageSize);
         long total = userMapper.countList(tenantId, username, role);
-        return PageResult.of(users, total, page, pageSize);
+        PageResult<User> result = PageResult.of(users, total, page, pageSize);
+        desensitizeService.desensitize(result);
+        return result;
     }
 
     @Transactional
@@ -232,6 +236,7 @@ public class UserService {
         if (user == null) {
             throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
+        desensitizeService.desensitize(user);
         return user;
     }
 

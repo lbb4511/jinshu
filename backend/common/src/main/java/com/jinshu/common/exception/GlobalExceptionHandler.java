@@ -2,10 +2,16 @@ package com.jinshu.common.exception;
 
 import com.jinshu.common.result.Result;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 全局异常处理器
@@ -67,6 +73,38 @@ public class GlobalExceptionHandler {
                 : "参数绑定失败";
         log.warn("参数绑定异常: {}", message);
         return Result.error(ErrorCode.PARAM_ERROR.getCode(), message);
+    }
+
+    /**
+     * 处理限流异常
+     *
+     * 返回 HTTP 429 Too Many Requests，并附带标准限流响应头：
+     * - Retry-After
+     * - X-RateLimit-Limit
+     * - X-RateLimit-Window
+     *
+     * @param e 限流异常
+     * @return 429 响应
+     */
+    @ExceptionHandler(RateLimitException.class)
+    public ResponseEntity<Result<Map<String, Object>>> handleRateLimitException(RateLimitException e) {
+        log.warn("触发限流: code={}, limit={}, window={}s, retryAfter={}s",
+                e.getCode(), e.getLimit(), e.getWindowSeconds(), e.getRetryAfterSeconds());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Retry-After", String.valueOf(e.getRetryAfterSeconds()));
+        headers.add("X-RateLimit-Limit", String.valueOf(e.getLimit()));
+        headers.add("X-RateLimit-Window", e.getWindowSeconds() + "s");
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("retryAfter", e.getRetryAfterSeconds());
+        data.put("limit", e.getLimit());
+        data.put("window", e.getWindowSeconds() + "s");
+
+        Result<Map<String, Object>> body = Result.error(e.getCode(), e.getMessage());
+        body.setData(data);
+
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).headers(headers).body(body);
     }
 
     /**

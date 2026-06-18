@@ -48,17 +48,20 @@ class FlywayMigrationTest {
         flyway.clean();
         var result = flyway.migrate();
 
-        assertThat(result.migrationsExecuted).isEqualTo(8);
+        assertThat(result.migrationsExecuted).isEqualTo(10);
         assertThat(result.success).isTrue();
 
         // 验证关键表已创建
         assertThat(tableExists(dataSource, "sys", "tenant")).isTrue();
         assertThat(tableExists(dataSource, "sys", "users")).isTrue();
         assertThat(tableExists(dataSource, "sys", "role_change_log")).isTrue();
+        assertThat(tableExists(dataSource, "sys", "rate_limit_config")).isTrue();
+        assertThat(tableExists(dataSource, "sys", "tenant_concurrency_quota")).isTrue();
         assertThat(tableExists(dataSource, "meta", "report_metadata")).isTrue();
         assertThat(tableExists(dataSource, "data", "import_error_log")).isTrue();
         assertThat(tableExists(dataSource, "task", "task")).isTrue();
         assertThat(tableExists(dataSource, "audit", "audit_log")).isTrue();
+        assertThat(tableExists(dataSource, "sys", "desensitize_rule")).isTrue();
         assertThat(tableExists(dataSource, "public", "flyway_schema_history")).isTrue();
     }
 

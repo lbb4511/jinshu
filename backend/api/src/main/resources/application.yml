@@ -100,6 +100,8 @@ jinshu:
     queue: jinshu.export        # 导出任务队列
   import:
     queue: ${JINSHU_IMPORT_QUEUE:jinshu.import.task}  # 导入任务队列
+  ratelimit:
+    enabled: true               # 启用 API 限流与租户并发配额拦截器
 
 # 日志配置
 logging:

@@ -38,6 +38,8 @@ class UserServiceTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     private TokenVersionManager tokenVersionManager;
+    @Mock
+    private DesensitizeService desensitizeService;
 
     private UserService userService;
 
@@ -46,7 +48,7 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userMapper, roleChangeLogMapper, passwordEncoder, tokenVersionManager);
+        userService = new UserService(userMapper, roleChangeLogMapper, passwordEncoder, tokenVersionManager, desensitizeService);
         TenantContext.setTenantId(TENANT_ID);
         UserContext.setUserId(1L);
         UserContext.setUsername("admin");

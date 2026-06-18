@@ -176,7 +176,27 @@ public enum ErrorCode {
     PDF_PAGE_LIMIT_EXCEEDED(3003, "报表页数超出限制，最大支持 500 页"),
     PDF_RENDER_FAILED(3004, "PDF 渲染失败"),
     PDF_MERGE_FAILED(3005, "PDF 分片合并失败"),
-    PDF_TASK_TIMEOUT(3006, "PDF 渲染超时");
+    PDF_TASK_TIMEOUT(3006, "PDF 渲染超时"),
+
+    /**
+     * 请求过于频繁，触发限流
+     */
+    RATE_LIMIT_EXCEEDED(42900, "请求过于频繁，请稍后重试"),
+
+    /**
+     * 租户并发请求数超过配额
+     */
+    TENANT_CONCURRENCY_EXCEEDED(42901, "租户并发请求数超过配额，请稍后重试"),
+
+    /**
+     * 脱敏规则不存在
+     */
+    DESENSITIZE_RULE_NOT_FOUND(6001, "脱敏规则不存在"),
+
+    /**
+     * 脱敏规则已存在
+     */
+    DESENSITIZE_RULE_CONFLICT(6002, "脱敏规则已存在");
 
     private final int code;
     private final String message;
