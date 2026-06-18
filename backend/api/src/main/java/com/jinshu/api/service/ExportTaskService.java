@@ -124,7 +124,7 @@ public class ExportTaskService {
         }
 
         Map<String, Object> result = new HashMap<>();
-        result.put("downloadUrl", "/api/files/download?taskId=" + taskId);
+        result.put("downloadUrl", "/api/v1/files/download?taskId=" + taskId);
         result.put("expiresAt", LocalDateTime.now().plusHours(1).toString());
         result.put("fileSize", "0MB");
         return result;

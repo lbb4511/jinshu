@@ -170,7 +170,7 @@ class ExportTaskServiceTest {
 
         Map<String, Object> result = exportTaskService.generateDownloadLink(TASK_ID);
 
-        assertThat(result.get("downloadUrl")).asString().contains("/api/files/download");
+        assertThat(result.get("downloadUrl")).asString().contains("/api/v1/files/download");
         assertThat(result.get("expiresAt")).isNotNull();
     }
 }

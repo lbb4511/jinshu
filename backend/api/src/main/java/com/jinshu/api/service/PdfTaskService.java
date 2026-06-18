@@ -127,7 +127,7 @@ public class PdfTaskService {
         }
 
         Map<String, Object> result = new HashMap<>();
-        result.put("downloadUrl", "/api/files/download?taskId=" + taskId);
+        result.put("downloadUrl", "/api/v1/files/download?taskId=" + taskId);
         result.put("expiresAt", LocalDateTime.now().plusHours(1).toString());
         result.put("fileName", "report_" + task.getReportId() + "_" + System.currentTimeMillis() + ".pdf");
         result.put("fileSize", "0MB");

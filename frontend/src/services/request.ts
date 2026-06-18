@@ -13,7 +13,7 @@ interface ResponseData<T = any> {
  * Axios HTTP客户端实例
  *
  * 配置说明：
- * - baseURL: /api（通过Vite代理到后端）
+ * - baseURL: /api/v1（通过Vite代理到后端）
  * - timeout: 300秒（支持大文件上传下载）
  *
  * 拦截器：
@@ -21,7 +21,7 @@ interface ResponseData<T = any> {
  * - 响应拦截：统一响应处理
  */
 const request = axios.create({
-  baseURL: '/api',
+  baseURL: '/api/v1',
   timeout: 300000
 })
 

@@ -97,13 +97,13 @@ spec:
           value: "jinshu.import.task"
         livenessProbe:
           httpGet:
-            path: /api/live
+            path: /api/v1/live
             port: 8080
           initialDelaySeconds: 60
           periodSeconds: 30
         readinessProbe:
           httpGet:
-            path: /api/ready
+            path: /api/v1/ready
             port: 8080
           initialDelaySeconds: 30
           periodSeconds: 10
