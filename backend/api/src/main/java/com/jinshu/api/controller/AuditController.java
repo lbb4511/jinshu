@@ -5,6 +5,7 @@ import com.jinshu.common.entity.AuditLogEntry;
 import com.jinshu.common.entity.AuditRootHash;
 import com.jinshu.common.result.PageResult;
 import com.jinshu.common.result.Result;
+import com.jinshu.common.security.RequireRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +28,7 @@ public class AuditController {
     private final AuditQueryService auditQueryService;
 
     @GetMapping("/logs")
+    @RequireRole("AUDITOR")
     public Result<PageResult<AuditLogEntry>> queryLogs(
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) String operation,
@@ -40,6 +42,7 @@ public class AuditController {
     }
 
     @GetMapping("/logs/export")
+    @RequireRole("AUDITOR")
     public ResponseEntity<byte[]> exportLogs(
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) String operation,
@@ -56,12 +59,14 @@ public class AuditController {
     }
 
     @GetMapping("/integrity")
+    @RequireRole({"AUDITOR", "SECURITY_ADMIN"})
     public Result<AuditQueryService.IntegrityCheckResult> verifyIntegrity(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime hourStart) {
         return Result.success(auditQueryService.verifyIntegrity(hourStart));
     }
 
     @GetMapping("/root-hash")
+    @RequireRole("AUDITOR")
     public Result<List<AuditRootHash>> listRootHashes(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTo) {

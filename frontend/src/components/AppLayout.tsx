@@ -53,18 +53,22 @@ export default function AppLayout() {
       command: () => navigate('/tasks'),
       className: isActive('/tasks') ? 'p-menuitem-active' : '',
     },
-    {
-      label: '用户管理',
-      icon: 'pi pi-users',
-      command: () => navigate('/users'),
-      className: isActive('/users') ? 'p-menuitem-active' : '',
-    },
-    {
-      label: '审计日志',
-      icon: 'pi pi-history',
-      command: () => navigate('/audit'),
-      className: isActive('/audit') ? 'p-menuitem-active' : '',
-    },
+    ...(user?.role === 'ADMIN'
+      ? [{
+          label: '用户管理',
+          icon: 'pi pi-users',
+          command: () => navigate('/users'),
+          className: isActive('/users') ? 'p-menuitem-active' : '',
+        }]
+      : []),
+    ...(user?.role === 'AUDITOR'
+      ? [{
+          label: '审计日志',
+          icon: 'pi pi-history',
+          command: () => navigate('/audit'),
+          className: isActive('/audit') ? 'p-menuitem-active' : '',
+        }]
+      : []),
     ...(user?.role === 'ADMIN'
       ? [{
           label: '租户管理',

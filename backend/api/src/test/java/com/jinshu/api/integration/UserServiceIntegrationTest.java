@@ -26,6 +26,9 @@ class UserServiceIntegrationTest extends IntegrationTestBase {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     @Nested
     @DisplayName("Create user")
     @Transactional
@@ -189,13 +192,15 @@ class UserServiceIntegrationTest extends IntegrationTestBase {
         }
 
         @Test
-        @DisplayName("Should update role")
+        @DisplayName("Should update role via changeRole and record audit log")
         void shouldUpdateRole() {
-            var updateReq = new UserService.UpdateUserRequest();
-            updateReq.setRole("ADMIN");
-
-            User updated = userService.updateUser(saved.getId(), updateReq);
+            User updated = userService.changeRole(saved.getId(), "ADMIN", "晋升测试");
             assertThat(updated.getRole()).isEqualTo("ADMIN");
+
+            Long logCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM sys.role_change_log WHERE target_user_id = ?",
+                Long.class, saved.getId());
+            assertThat(logCount).isEqualTo(1L);
         }
     }
 

@@ -12,7 +12,11 @@ export interface CreateUserRequest {
 export interface UpdateUserRequest {
   displayName?: string
   email?: string
-  role?: string
+}
+
+export interface ChangeRoleRequest {
+  role: string
+  reason?: string
 }
 
 export interface ChangeStatusRequest {
@@ -41,6 +45,11 @@ export async function createUser(data: CreateUserRequest): Promise<User> {
 
 export async function updateUser(id: number, data: UpdateUserRequest): Promise<User> {
   const res = await request.put<Result<User>>(`/users/${id}`, data)
+  return res.data.data
+}
+
+export async function changeUserRole(id: number, data: ChangeRoleRequest): Promise<User> {
+  const res = await request.put<Result<User>>(`/users/${id}/role`, data)
   return res.data.data
 }
 

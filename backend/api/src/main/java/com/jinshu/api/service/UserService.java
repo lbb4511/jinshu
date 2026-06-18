@@ -1,13 +1,16 @@
 package com.jinshu.api.service;
 
+import com.jinshu.api.dao.RoleChangeLogMapper;
 import com.jinshu.api.dao.UserMapper;
 import com.jinshu.common.audit.AuditLog;
 import com.jinshu.common.context.TenantContext;
 import com.jinshu.common.context.UserContext;
+import com.jinshu.common.entity.RoleChangeLog;
 import com.jinshu.common.entity.User;
 import com.jinshu.common.exception.BusinessException;
 import com.jinshu.common.exception.ErrorCode;
 import com.jinshu.common.result.PageResult;
+import com.jinshu.common.security.Role;
 import com.jinshu.common.security.TokenVersionManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +30,7 @@ import java.util.regex.Pattern;
 public class UserService {
 
     private final UserMapper userMapper;
+    private final RoleChangeLogMapper roleChangeLogMapper;
     private final PasswordEncoder passwordEncoder;
     private final TokenVersionManager tokenVersionManager;
 
@@ -47,6 +51,10 @@ public class UserService {
         if (!isValidPassword(request.getPassword())) {
             throw new BusinessException(ErrorCode.PARAM_ERROR,
                     "密码必须至少8位，包含大写字母、小写字母、数字和特殊字符");
+        }
+
+        if (!Role.isValid(request.getRole())) {
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "无效的角色: " + request.getRole());
         }
 
         User user = new User();
@@ -97,13 +105,54 @@ public class UserService {
         if (request.getEmail() != null) {
             user.setEmail(request.getEmail());
         }
-        if (request.getRole() != null) {
-            user.setRole(request.getRole());
-            tokenVersionManager.incrementTokenVersion(user.getId());
-        }
         user.setUpdatedAt(LocalDateTime.now());
 
         userMapper.update(user);
+        return user;
+    }
+
+    /**
+     * 变更用户角色
+     *
+     * <p>仅允许 ADMIN 调用。角色变更会记录到 sys.role_change_log 审计表，
+     * 并递增目标用户的 Token 版本，使其旧 Token 失效。</p>
+     *
+     * @param id     目标用户ID
+     * @param role   新角色
+     * @param reason 变更原因
+     * @return 更新后的用户
+     */
+    @Transactional
+    @AuditLog(operation = "CHANGE_ROLE", targetType = "USER")
+    public User changeRole(Long id, String role, String reason) {
+        User user = getUserById(id);
+        Long currentUserId = UserContext.getUserId();
+
+        if (id.equals(currentUserId)) {
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "不能修改自己的角色");
+        }
+
+        if (!Role.isValid(role)) {
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "无效的角色: " + role);
+        }
+
+        String oldRole = user.getRole();
+        user.setRole(role);
+        user.setUpdatedAt(LocalDateTime.now());
+        userMapper.update(user);
+
+        RoleChangeLog changeLog = new RoleChangeLog();
+        changeLog.setTenantId(user.getTenantId());
+        changeLog.setTargetUserId(id);
+        changeLog.setOperatorUserId(currentUserId);
+        changeLog.setOldRole(oldRole);
+        changeLog.setNewRole(role);
+        changeLog.setReason(reason);
+        changeLog.setCreatedAt(LocalDateTime.now());
+        roleChangeLogMapper.insert(changeLog);
+
+        tokenVersionManager.incrementTokenVersion(id);
+
         return user;
     }
 
@@ -212,14 +261,21 @@ public class UserService {
     public static class UpdateUserRequest {
         private String displayName;
         private String email;
-        private String role;
 
         public String getDisplayName() { return displayName; }
         public void setDisplayName(String displayName) { this.displayName = displayName; }
         public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
+    }
+
+    public static class ChangeRoleRequest {
+        private String role;
+        private String reason;
+
         public String getRole() { return role; }
         public void setRole(String role) { this.role = role; }
+        public String getReason() { return reason; }
+        public void setReason(String reason) { this.reason = reason; }
     }
 
     public static class ChangePasswordRequest {

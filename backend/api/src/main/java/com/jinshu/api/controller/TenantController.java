@@ -7,9 +7,9 @@ import com.jinshu.common.exception.BusinessException;
 import com.jinshu.common.exception.ErrorCode;
 import com.jinshu.common.result.PageResult;
 import com.jinshu.common.result.Result;
+import com.jinshu.common.security.RequireRole;
 import com.jinshu.common.security.SkipTenantFilter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -22,7 +22,7 @@ public class TenantController {
 
     @PostMapping("/admin/tenants")
     @SkipTenantFilter
-    @PreAuthorize("hasRole('ADMIN')")
+    @RequireRole("ADMIN")
     @AuditLog(operation = "CREATE_TENANT", targetType = "TENANT")
     public Result<Tenant> createTenant(@RequestBody TenantService.CreateTenantRequest request) {
         Tenant tenant = tenantService.createTenant(request);
@@ -31,7 +31,7 @@ public class TenantController {
 
     @GetMapping("/admin/tenants")
     @SkipTenantFilter
-    @PreAuthorize("hasRole('ADMIN')")
+    @RequireRole("ADMIN")
     public Result<PageResult<Tenant>> listTenants(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String status,
@@ -43,7 +43,7 @@ public class TenantController {
 
     @GetMapping("/admin/tenants/{id}")
     @SkipTenantFilter
-    @PreAuthorize("hasRole('ADMIN')")
+    @RequireRole("ADMIN")
     public Result<Tenant> getTenant(@PathVariable Long id) {
         Tenant tenant = tenantService.getTenantById(id);
         return Result.success(tenant);
@@ -51,7 +51,7 @@ public class TenantController {
 
     @PutMapping("/admin/tenants/{id}")
     @SkipTenantFilter
-    @PreAuthorize("hasRole('ADMIN')")
+    @RequireRole("ADMIN")
     @AuditLog(operation = "UPDATE_TENANT", targetType = "TENANT")
     public Result<Tenant> updateTenant(@PathVariable Long id, @RequestBody TenantService.UpdateTenantRequest request) {
         Tenant tenant = tenantService.updateTenant(id, request);
@@ -60,7 +60,7 @@ public class TenantController {
 
     @PatchMapping("/admin/tenants/{id}/status")
     @SkipTenantFilter
-    @PreAuthorize("hasRole('ADMIN')")
+    @RequireRole("ADMIN")
     @AuditLog(operation = "CHANGE_TENANT_STATUS", targetType = "TENANT")
     public Result<Tenant> changeTenantStatus(@PathVariable Long id, @RequestParam String status) {
         Tenant tenant = tenantService.changeTenantStatus(id, status);
@@ -69,7 +69,7 @@ public class TenantController {
 
     @DeleteMapping("/admin/tenants/{id}")
     @SkipTenantFilter
-    @PreAuthorize("hasRole('ADMIN')")
+    @RequireRole("ADMIN")
     @AuditLog(operation = "ARCHIVE_TENANT", targetType = "TENANT")
     public Result<Void> archiveTenant(@PathVariable Long id) {
         tenantService.archiveTenant(id);

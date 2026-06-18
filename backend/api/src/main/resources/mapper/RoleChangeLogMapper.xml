@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinshu.api.dao.RoleChangeLogMapper">
+
+    <resultMap id="BaseResultMap" type="com.jinshu.common.entity.RoleChangeLog">
+        <id column="id" property="id"/>
+        <result column="tenant_id" property="tenantId"/>
+        <result column="target_user_id" property="targetUserId"/>
+        <result column="operator_user_id" property="operatorUserId"/>
+        <result column="old_role" property="oldRole"/>
+        <result column="new_role" property="newRole"/>
+        <result column="reason" property="reason"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys.role_change_log (tenant_id, target_user_id, operator_user_id, old_role, new_role, reason, created_at)
+        VALUES (#{tenantId}, #{targetUserId}, #{operatorUserId}, #{oldRole}, #{newRole}, #{reason}, #{createdAt})
+    </insert>
+
+</mapper>

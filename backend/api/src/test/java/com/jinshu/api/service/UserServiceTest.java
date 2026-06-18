@@ -1,8 +1,10 @@
 package com.jinshu.api.service;
 
+import com.jinshu.api.dao.RoleChangeLogMapper;
 import com.jinshu.api.dao.UserMapper;
 import com.jinshu.common.context.TenantContext;
 import com.jinshu.common.context.UserContext;
+import com.jinshu.common.entity.RoleChangeLog;
 import com.jinshu.common.entity.User;
 import com.jinshu.common.exception.BusinessException;
 import com.jinshu.common.exception.ErrorCode;
@@ -31,6 +33,8 @@ class UserServiceTest {
     @Mock
     private UserMapper userMapper;
     @Mock
+    private RoleChangeLogMapper roleChangeLogMapper;
+    @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
     private TokenVersionManager tokenVersionManager;
@@ -42,7 +46,7 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userMapper, passwordEncoder, tokenVersionManager);
+        userService = new UserService(userMapper, roleChangeLogMapper, passwordEncoder, tokenVersionManager);
         TenantContext.setTenantId(TENANT_ID);
         UserContext.setUserId(1L);
         UserContext.setUsername("admin");
@@ -178,14 +182,54 @@ class UserServiceTest {
         UserService.UpdateUserRequest request = new UserService.UpdateUserRequest();
         request.setDisplayName("李四");
         request.setEmail("lisi@example.com");
-        request.setRole("ADMIN");
 
         User result = userService.updateUser(USER_ID, request);
 
         assertThat(result.getDisplayName()).isEqualTo("李四");
         assertThat(result.getEmail()).isEqualTo("lisi@example.com");
-        assertThat(result.getRole()).isEqualTo("ADMIN");
+        assertThat(result.getRole()).isEqualTo("USER");
         verify(userMapper).update(any(User.class));
+    }
+
+    @Test
+    @DisplayName("changeRole：ADMIN 修改他人角色成功并记录审计日志")
+    void given_admin_when_changeRole_then_successAndLog() {
+        User existing = createDefaultUser();
+        when(userMapper.selectById(USER_ID)).thenReturn(existing);
+
+        User result = userService.changeRole(USER_ID, "ADMIN", "晋升管理员");
+
+        assertThat(result.getRole()).isEqualTo("ADMIN");
+        verify(userMapper).update(argThat(u -> "ADMIN".equals(u.getRole())));
+        verify(roleChangeLogMapper).insert(argThat(log ->
+                log.getTargetUserId().equals(USER_ID)
+                        && "USER".equals(log.getOldRole())
+                        && "ADMIN".equals(log.getNewRole())
+                        && "晋升管理员".equals(log.getReason())));
+        verify(tokenVersionManager).incrementTokenVersion(USER_ID);
+    }
+
+    @Test
+    @DisplayName("changeRole：不能修改自己的角色")
+    void given_selfTarget_when_changeRole_then_throw() {
+        User existing = createDefaultUser();
+        when(userMapper.selectById(USER_ID)).thenReturn(existing);
+        UserContext.setUserId(USER_ID);
+
+        assertThatThrownBy(() -> userService.changeRole(USER_ID, "ADMIN", ""))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("不能修改自己的角色");
+    }
+
+    @Test
+    @DisplayName("changeRole：无效角色抛异常")
+    void given_invalidRole_when_changeRole_then_throw() {
+        User existing = createDefaultUser();
+        when(userMapper.selectById(USER_ID)).thenReturn(existing);
+
+        assertThatThrownBy(() -> userService.changeRole(USER_ID, "SUPER_ADMIN", ""))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("无效的角色");
     }
 
     @Test

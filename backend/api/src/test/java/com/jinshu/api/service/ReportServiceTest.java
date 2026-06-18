@@ -239,7 +239,7 @@ class ReportServiceTest {
         ReportService.ReviewRequest request = new ReportService.ReviewRequest();
         assertThatThrownBy(() -> reportService.approveReport(REPORT_ID, request))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("无权审批");
+                .hasFieldOrPropertyWithValue("code", ErrorCode.NOT_ASSIGNED_REVIEWER.getCode());
     }
 
     // ============ rejectReport ============
@@ -288,6 +288,39 @@ class ReportServiceTest {
                 .hasMessageContaining("当前状态不允许发布");
     }
 
+    // ============ updateReport ============
+
+    @Test
+    @DisplayName("updateReport：所有者更新成功")
+    void given_owner_when_update_then_success() {
+        when(reportMapper.selectById(REPORT_ID)).thenReturn(createDraftReport());
+
+        ReportService.UpdateReportRequest request = new ReportService.UpdateReportRequest();
+        request.setName("新名称");
+
+        Report result = reportService.updateReport(REPORT_ID, request);
+
+        assertThat(result.getName()).isEqualTo("新名称");
+        assertThat(result.getSchemaVersion()).isEqualTo(2);
+        verify(reportMapper).update(any(Report.class));
+    }
+
+    @Test
+    @DisplayName("updateReport：非所有者且非 ADMIN 抛异常")
+    void given_nonOwnerNonAdmin_when_update_then_throw() {
+        Report report = createDraftReport();
+        report.setCreatedBy(999L);
+        when(reportMapper.selectById(REPORT_ID)).thenReturn(report);
+        UserContext.setRole("USER");
+
+        ReportService.UpdateReportRequest request = new ReportService.UpdateReportRequest();
+        request.setName("越权更新");
+
+        assertThatThrownBy(() -> reportService.updateReport(REPORT_ID, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("code", ErrorCode.NOT_RESOURCE_OWNER.getCode());
+    }
+
     // ============ softDelete ============
 
     @Test
@@ -310,7 +343,7 @@ class ReportServiceTest {
 
         assertThatThrownBy(() -> reportService.deleteReport(REPORT_ID))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("无权删除");
+                .hasFieldOrPropertyWithValue("code", ErrorCode.NOT_RESOURCE_OWNER.getCode());
     }
 
     @Test

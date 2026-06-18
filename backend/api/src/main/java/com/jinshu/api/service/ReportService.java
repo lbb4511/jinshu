@@ -12,6 +12,7 @@ import com.jinshu.common.enums.ReportStatus;
 import com.jinshu.common.exception.BusinessException;
 import com.jinshu.common.exception.ErrorCode;
 import com.jinshu.common.result.PageResult;
+import com.jinshu.common.security.PermissionUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -82,11 +83,8 @@ public class ReportService {
     @AuditLog(operation = "UPDATE_REPORT", targetType = "REPORT")
     public Report updateReport(Long id, UpdateReportRequest request) {
         Report report = getReportById(id);
-        Long userId = UserContext.getUserId();
 
-        if (!canEditReport(report, userId)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN, "无权编辑此报表");
-        }
+        PermissionUtils.checkOwner(report.getCreatedBy());
 
         if (!ReportStatus.DRAFT.name().equals(report.getStatus()) &&
             !ReportStatus.REJECTED.name().equals(report.getStatus())) {
@@ -117,11 +115,8 @@ public class ReportService {
     @AuditLog(operation = "DELETE_REPORT", targetType = "REPORT")
     public void deleteReport(Long id) {
         Report report = getReportById(id);
-        Long userId = UserContext.getUserId();
 
-        if (!canDeleteReport(report, userId)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN, "无权删除此报表");
-        }
+        PermissionUtils.checkOwner(report.getCreatedBy());
 
         report.setIsDeleted(true);
         report.setDeletedAt(LocalDateTime.now());
@@ -177,11 +172,8 @@ public class ReportService {
         }
 
         ReportWorkflow currentWorkflow = workflowMapper.selectCurrentByReportId(id);
-        if (currentWorkflow != null && !currentWorkflow.getReviewedBy().equals(userId)) {
-            String role = UserContext.getRole();
-            if (!"ADMIN".equals(role)) {
-                throw new BusinessException(ErrorCode.FORBIDDEN, "无权审批此报表");
-            }
+        if (currentWorkflow != null && currentWorkflow.getReviewedBy() != null) {
+            PermissionUtils.checkReviewer(currentWorkflow.getReviewedBy());
         }
 
         report.setStatus(ReportStatus.APPROVED.name());
@@ -214,11 +206,8 @@ public class ReportService {
         }
 
         ReportWorkflow currentWorkflow = workflowMapper.selectCurrentByReportId(id);
-        if (currentWorkflow != null && !currentWorkflow.getReviewedBy().equals(userId)) {
-            String role = UserContext.getRole();
-            if (!"ADMIN".equals(role)) {
-                throw new BusinessException(ErrorCode.FORBIDDEN, "无权审批此报表");
-            }
+        if (currentWorkflow != null && currentWorkflow.getReviewedBy() != null) {
+            PermissionUtils.checkReviewer(currentWorkflow.getReviewedBy());
         }
 
         report.setStatus(ReportStatus.REJECTED.name());
@@ -264,22 +253,6 @@ public class ReportService {
         workflowMapper.insert(workflow);
 
         return report;
-    }
-
-    private boolean canEditReport(Report report, Long userId) {
-        String role = UserContext.getRole();
-        if ("ADMIN".equals(role)) {
-            return true;
-        }
-        return report.getCreatedBy().equals(userId);
-    }
-
-    private boolean canDeleteReport(Report report, Long userId) {
-        String role = UserContext.getRole();
-        if ("ADMIN".equals(role)) {
-            return true;
-        }
-        return report.getCreatedBy().equals(userId);
     }
 
     public static class CreateReportRequest {

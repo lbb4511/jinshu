@@ -6,8 +6,8 @@ import com.jinshu.common.context.UserContext;
 import com.jinshu.common.entity.User;
 import com.jinshu.common.result.PageResult;
 import com.jinshu.common.result.Result;
+import com.jinshu.common.security.RequireRole;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,7 +18,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TENANT_ADMIN')")
+    @RequireRole("ADMIN")
     @AuditLog(operation = "CREATE_USER", targetType = "USER")
     public Result<User> createUser(@RequestBody UserService.CreateUserRequest request) {
         User user = userService.createUser(request);
@@ -26,7 +26,7 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TENANT_ADMIN')")
+    @RequireRole("ADMIN")
     public Result<PageResult<User>> listUsers(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String role,
@@ -37,22 +37,30 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TENANT_ADMIN')")
+    @RequireRole("ADMIN")
     public Result<User> getUser(@PathVariable Long id) {
         User user = userService.getUserById(id);
         return Result.success(user);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TENANT_ADMIN')")
+    @RequireRole("ADMIN")
     @AuditLog(operation = "UPDATE_USER", targetType = "USER")
     public Result<User> updateUser(@PathVariable Long id, @RequestBody UserService.UpdateUserRequest request) {
         User user = userService.updateUser(id, request);
         return Result.success(user);
     }
 
+    @PutMapping("/{id}/role")
+    @RequireRole("ADMIN")
+    @AuditLog(operation = "CHANGE_ROLE", targetType = "USER")
+    public Result<User> changeUserRole(@PathVariable Long id, @RequestBody UserService.ChangeRoleRequest request) {
+        User user = userService.changeRole(id, request.getRole(), request.getReason());
+        return Result.success(user);
+    }
+
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TENANT_ADMIN')")
+    @RequireRole("ADMIN")
     @AuditLog(operation = "CHANGE_USER_STATUS", targetType = "USER")
     public Result<User> changeUserStatus(@PathVariable Long id, @RequestParam String status) {
         User user = userService.changeUserStatus(id, status);
@@ -60,7 +68,7 @@ public class UserController {
     }
 
     @PostMapping("/{id}/reset-password")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TENANT_ADMIN')")
+    @RequireRole("ADMIN")
     @AuditLog(operation = "RESET_PASSWORD", targetType = "USER")
     public Result<Void> resetPassword(@PathVariable Long id, @RequestParam String newPassword) {
         userService.resetPassword(id, newPassword);

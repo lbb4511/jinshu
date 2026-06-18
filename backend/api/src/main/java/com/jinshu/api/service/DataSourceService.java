@@ -10,6 +10,7 @@ import com.jinshu.common.entity.DataSourceConnectionLog;
 import com.jinshu.common.exception.BusinessException;
 import com.jinshu.common.exception.ErrorCode;
 import com.jinshu.common.result.PageResult;
+import com.jinshu.common.security.PermissionUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -84,7 +85,8 @@ public class DataSourceService {
     @AuditLog(operation = "UPDATE_DATASOURCE", targetType = "DATASOURCE")
     public DataSource updateDataSource(Long id, UpdateDataSourceRequest request) {
         DataSource dataSource = getDataSourceById(id);
-        Long userId = UserContext.getUserId();
+
+        PermissionUtils.checkOwner(dataSource.getCreatedBy());
 
         if (request.getName() != null) {
             DataSource existing = dataSourceMapper.selectByNameAndTenantId(request.getName(), dataSource.getTenantId());
@@ -117,7 +119,7 @@ public class DataSourceService {
             dataSource.setConnectionConfig(toJson(config));
         }
 
-        dataSource.setUpdatedBy(userId);
+        dataSource.setUpdatedBy(UserContext.getUserId());
         dataSource.setUpdatedAt(LocalDateTime.now());
         dataSourceMapper.update(dataSource);
         return dataSource;
@@ -127,6 +129,8 @@ public class DataSourceService {
     @AuditLog(operation = "DELETE_DATASOURCE", targetType = "DATASOURCE")
     public void deleteDataSource(Long id) {
         DataSource dataSource = getDataSourceById(id);
+
+        PermissionUtils.checkOwner(dataSource.getCreatedBy());
 
         long reportCount = dataSourceMapper.countByDataSourceId(id);
         if (reportCount > 0) {
@@ -140,6 +144,9 @@ public class DataSourceService {
 
     public Map<String, Object> testConnection(Long id) {
         DataSource dataSource = getDataSourceById(id);
+
+        PermissionUtils.checkOwner(dataSource.getCreatedBy());
+
         Map<String, Object> result = new HashMap<>();
         long startTime = System.currentTimeMillis();
 

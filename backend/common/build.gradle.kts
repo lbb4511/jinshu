@@ -23,6 +23,9 @@ dependencies {
     api("org.flywaydb:flyway-database-postgresql")
     api("io.jsonwebtoken:jjwt-api:0.12.6")
     api("org.mybatis:mybatis")
+    api("org.springframework:spring-aop")
+    api("org.aspectj:aspectjrt")
+    api("org.aspectj:aspectjweaver")
     implementation("io.jsonwebtoken:jjwt-impl:0.12.6")
     implementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
 

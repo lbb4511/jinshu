@@ -11,10 +11,10 @@ import { Password } from 'primereact/password'
 import { Toast } from 'primereact/toast'
 import { confirmDialog } from 'primereact/confirmdialog'
 import {
-  listUsers, createUser, updateUser, changeUserStatus, resetPassword,
+  listUsers, createUser, updateUser, changeUserRole, changeUserStatus, resetPassword,
 } from '../services/user'
 import type { User } from '../types'
-import type { CreateUserRequest, UpdateUserRequest } from '../services/user'
+import type { CreateUserRequest, UpdateUserRequest, ChangeRoleRequest } from '../services/user'
 import './UserList.scss'
 
 const ROLE_OPTIONS = [
@@ -49,6 +49,11 @@ const emptyForm: CreateUserRequest = {
   role: 'USER',
 }
 
+const emptyRoleForm: ChangeRoleRequest = {
+  role: 'USER',
+  reason: '',
+}
+
 export default function UserList() {
   const [users, setUsers] = useState<User[]>([])
   const [total, setTotal] = useState(0)
@@ -65,6 +70,10 @@ export default function UserList() {
   const [resettingUser, setResettingUser] = useState<User | null>(null)
   const [newPassword, setNewPassword] = useState('')
   const [resetting, setResetting] = useState(false)
+  const [roleDialogVisible, setRoleDialogVisible] = useState(false)
+  const [roleUser, setRoleUser] = useState<User | null>(null)
+  const [roleForm, setRoleForm] = useState<ChangeRoleRequest>({ ...emptyRoleForm })
+  const [changingRole, setChangingRole] = useState(false)
   const toast = useRef<Toast>(null)
 
   const load = useCallback(async () => {
@@ -105,6 +114,31 @@ export default function UserList() {
     setDialogVisible(true)
   }
 
+  const openChangeRole = (user: User) => {
+    setRoleUser(user)
+    setRoleForm({ role: user.role, reason: '' })
+    setRoleDialogVisible(true)
+  }
+
+  const handleChangeRole = async () => {
+    if (!roleUser) return
+    if (!roleForm.role) {
+      toast.current?.show({ severity: 'warn', summary: '请选择角色' })
+      return
+    }
+    setChangingRole(true)
+    try {
+      await changeUserRole(roleUser.id, roleForm)
+      toast.current?.show({ severity: 'success', summary: '角色已变更' })
+      setRoleDialogVisible(false)
+      load()
+    } catch {
+      toast.current?.show({ severity: 'error', summary: '角色变更失败' })
+    } finally {
+      setChangingRole(false)
+    }
+  }
+
   const handleSave = async () => {
     if (!form.username || (!editingId && !form.password)) {
       toast.current?.show({ severity: 'warn', summary: '表单不完整', detail: '请填写必填字段' })
@@ -116,7 +150,6 @@ export default function UserList() {
         const update: UpdateUserRequest = {
           displayName: form.displayName,
           email: form.email,
-          role: form.role,
         }
         await updateUser(editingId, update)
         toast.current?.show({ severity: 'success', summary: '已更新' })
@@ -194,6 +227,8 @@ export default function UserList() {
     <div className="user-actions">
       <Button icon="pi pi-pencil" rounded text severity="info" tooltip="编辑"
         onClick={() => openEdit(row)} />
+      <Button icon="pi pi-id-card" rounded text severity="warning" tooltip="变更角色"
+        onClick={() => openChangeRole(row)} />
       <Button
         icon={row.status === 'ACTIVE' ? 'pi pi-lock' : 'pi pi-lock-open'}
         rounded text
@@ -227,6 +262,13 @@ export default function UserList() {
     <div>
       <Button label="取消" icon="pi pi-times" text onClick={() => setResetDialogVisible(false)} />
       <Button label={resetting ? '重置中...' : '重置'} icon="pi pi-check" onClick={handleResetPassword} disabled={resetting} />
+    </div>
+  )
+
+  const roleDialogFooter = (
+    <div>
+      <Button label="取消" icon="pi pi-times" text onClick={() => setRoleDialogVisible(false)} />
+      <Button label={changingRole ? '保存中...' : '保存'} icon="pi pi-check" onClick={handleChangeRole} disabled={changingRole} />
     </div>
   )
 
@@ -289,11 +331,13 @@ export default function UserList() {
             <label>邮箱</label>
             <InputText value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="邮箱" />
           </div>
-          <div className="field">
-            <label>角色 *</label>
-            <Dropdown options={ROLE_OPTIONS.filter(o => o.value)} value={form.role}
-              onChange={e => setForm({ ...form, role: e.value })} placeholder="选择角色" style={{ width: '100%' }} />
-          </div>
+          {!editingId && (
+            <div className="field">
+              <label>角色 *</label>
+              <Dropdown options={ROLE_OPTIONS.filter(o => o.value)} value={form.role}
+                onChange={e => setForm({ ...form, role: e.value })} placeholder="选择角色" style={{ width: '100%' }} />
+            </div>
+          )}
         </div>
       </Dialog>
 
@@ -309,6 +353,26 @@ export default function UserList() {
             <label>新密码 *</label>
             <Password value={newPassword} onChange={e => setNewPassword(e.target.value)}
               placeholder="至少8位，含大小写字母、数字和特殊字符" toggleMask feedback={false} style={{ width: '100%' }} inputStyle={{ width: '100%' }} />
+          </div>
+        </div>
+      </Dialog>
+
+      <Dialog
+        header={`变更角色 - ${roleUser?.username || ''}`}
+        visible={roleDialogVisible}
+        style={{ width: '450px' }}
+        footer={roleDialogFooter}
+        onHide={() => setRoleDialogVisible(false)}
+      >
+        <div className="user-form">
+          <div className="field">
+            <label>新角色 *</label>
+            <Dropdown options={ROLE_OPTIONS.filter(o => o.value)} value={roleForm.role}
+              onChange={e => setRoleForm({ ...roleForm, role: e.value })} placeholder="选择角色" style={{ width: '100%' }} />
+          </div>
+          <div className="field">
+            <label>变更原因</label>
+            <InputText value={roleForm.reason || ''} onChange={e => setRoleForm({ ...roleForm, reason: e.target.value })} placeholder="可选" />
           </div>
         </div>
       </Dialog>

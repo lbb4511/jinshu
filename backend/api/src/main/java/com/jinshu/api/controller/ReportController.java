@@ -5,8 +5,9 @@ import com.jinshu.common.audit.AuditLog;
 import com.jinshu.common.entity.Report;
 import com.jinshu.common.result.PageResult;
 import com.jinshu.common.result.Result;
+import com.jinshu.common.security.RequireOwner;
+import com.jinshu.common.security.RequireRole;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,7 +18,7 @@ public class ReportController {
     private final ReportService reportService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @RequireRole({"ADMIN", "USER"})
     @AuditLog(operation = "CREATE_REPORT", targetType = "REPORT")
     public Result<Report> createReport(@RequestBody ReportService.CreateReportRequest request) {
         Report report = reportService.createReport(request);
@@ -25,7 +26,7 @@ public class ReportController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'VIEWER')")
+    @RequireRole({"ADMIN", "SECURITY_ADMIN", "AUDITOR", "USER", "VIEWER"})
     public Result<PageResult<Report>> listReports(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String status,
@@ -36,14 +37,15 @@ public class ReportController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'VIEWER')")
+    @RequireRole({"ADMIN", "SECURITY_ADMIN", "AUDITOR", "USER", "VIEWER"})
     public Result<Report> getReport(@PathVariable Long id) {
         Report report = reportService.getReportById(id);
         return Result.success(report);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @RequireRole({"ADMIN", "USER"})
+    @RequireOwner(resourceIdParam = "id")
     @AuditLog(operation = "UPDATE_REPORT", targetType = "REPORT")
     public Result<Report> updateReport(@PathVariable Long id, @RequestBody ReportService.UpdateReportRequest request) {
         Report report = reportService.updateReport(id, request);
@@ -51,7 +53,8 @@ public class ReportController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @RequireRole({"ADMIN", "USER"})
+    @RequireOwner(resourceIdParam = "id")
     @AuditLog(operation = "DELETE_REPORT", targetType = "REPORT")
     public Result<Void> deleteReport(@PathVariable Long id) {
         reportService.deleteReport(id);
@@ -59,7 +62,7 @@ public class ReportController {
     }
 
     @PostMapping("/{id}/submit")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @RequireRole({"ADMIN", "USER"})
     @AuditLog(operation = "SUBMIT_REVIEW", targetType = "REPORT")
     public Result<Report> submitForReview(@PathVariable Long id, @RequestBody ReportService.SubmitReviewRequest request) {
         Report report = reportService.submitForReview(id, request);
@@ -67,7 +70,7 @@ public class ReportController {
     }
 
     @PostMapping("/{id}/approve")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @RequireRole({"ADMIN", "USER"})
     @AuditLog(operation = "APPROVE_REPORT", targetType = "REPORT")
     public Result<Report> approveReport(@PathVariable Long id, @RequestBody ReportService.ReviewRequest request) {
         Report report = reportService.approveReport(id, request);
@@ -75,7 +78,7 @@ public class ReportController {
     }
 
     @PostMapping("/{id}/reject")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @RequireRole({"ADMIN", "USER"})
     @AuditLog(operation = "REJECT_REPORT", targetType = "REPORT")
     public Result<Report> rejectReport(@PathVariable Long id, @RequestBody ReportService.ReviewRequest request) {
         Report report = reportService.rejectReport(id, request);
@@ -83,7 +86,7 @@ public class ReportController {
     }
 
     @PostMapping("/{id}/publish")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @RequireRole({"ADMIN", "USER"})
     @AuditLog(operation = "PUBLISH_REPORT", targetType = "REPORT")
     public Result<Report> publishReport(@PathVariable Long id) {
         Report report = reportService.publishReport(id);

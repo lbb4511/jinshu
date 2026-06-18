@@ -193,4 +193,49 @@ class DataSourceServiceTest {
         assertThatCode(() -> dataSourceService.testConnection(DS_ID))
                 .doesNotThrowAnyException();
     }
+
+    @Test
+    @DisplayName("updateDataSource：非所有者且非 ADMIN 抛异常")
+    void given_nonOwnerNonAdmin_when_update_then_throw() {
+        DataSource ds = createDefaultDataSource();
+        ds.setCreatedBy(999L);
+        when(dataSourceMapper.selectByIdAndTenantId(DS_ID, TENANT_ID))
+                .thenReturn(ds);
+        UserContext.setRole("USER");
+
+        DataSourceService.UpdateDataSourceRequest request = new DataSourceService.UpdateDataSourceRequest();
+        request.setName("越权更新");
+
+        assertThatThrownBy(() -> dataSourceService.updateDataSource(DS_ID, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("code", ErrorCode.NOT_RESOURCE_OWNER.getCode());
+    }
+
+    @Test
+    @DisplayName("deleteDataSource：非所有者且非 ADMIN 抛异常")
+    void given_nonOwnerNonAdmin_when_delete_then_throw() {
+        DataSource ds = createDefaultDataSource();
+        ds.setCreatedBy(999L);
+        when(dataSourceMapper.selectByIdAndTenantId(DS_ID, TENANT_ID))
+                .thenReturn(ds);
+        UserContext.setRole("USER");
+
+        assertThatThrownBy(() -> dataSourceService.deleteDataSource(DS_ID))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("code", ErrorCode.NOT_RESOURCE_OWNER.getCode());
+    }
+
+    @Test
+    @DisplayName("testConnection：非所有者且非 ADMIN 抛异常")
+    void given_nonOwnerNonAdmin_when_testConnection_then_throw() {
+        DataSource ds = createDefaultDataSource();
+        ds.setCreatedBy(999L);
+        when(dataSourceMapper.selectByIdAndTenantId(DS_ID, TENANT_ID))
+                .thenReturn(ds);
+        UserContext.setRole("USER");
+
+        assertThatThrownBy(() -> dataSourceService.testConnection(DS_ID))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("code", ErrorCode.NOT_RESOURCE_OWNER.getCode());
+    }
 }
