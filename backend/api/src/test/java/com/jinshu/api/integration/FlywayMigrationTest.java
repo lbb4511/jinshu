@@ -42,8 +42,10 @@ class FlywayMigrationTest {
                 .defaultSchema("public")
                 .schemas("sys", "meta", "data", "workflow", "audit", "task")
                 .createSchemas(true)
+                .cleanDisabled(false)
                 .load();
 
+        flyway.clean();
         var result = flyway.migrate();
 
         assertThat(result.migrationsExecuted).isEqualTo(5);

@@ -6,6 +6,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -17,15 +18,20 @@ import java.util.UUID;
 @Component
 public class JwtTokenProvider {
 
-    private static final String JWT_SECRET = System.getenv("JINSHU_JWT_SECRET");
     private static final long ACCESS_TOKEN_EXPIRATION = 30 * 60 * 1000L;
     private static final long REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000L;
 
-    private final SecretKey secretKey;
+    @Value("${jinshu.jwt.secret:defaultSecretKeyForDevelopmentOnlyChangeInProduction12345678!xyz}")
+    private String secret;
+
+    private SecretKey secretKey;
+
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
 
     public JwtTokenProvider() {
-        String secret = JWT_SECRET != null ? JWT_SECRET : "defaultSecretKeyForDevelopmentOnlyChangeInProduction12345678!xyz";
-        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     public JwtTokenProvider(String secret) {

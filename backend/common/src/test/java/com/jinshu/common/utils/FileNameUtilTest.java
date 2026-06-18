@@ -27,7 +27,7 @@ class FileNameUtilTest {
     @DisplayName("generateExportFilePath: 包含 /data/output/ 前缀")
     void given_excelFormat_when_generateFilePath_then_correctPrefix() {
         String path = FileNameUtil.generateExportFilePath(1L, 100L, "EXCEL");
-        assertThat(path).startsWith("/data/output/1/");
+        assertThat(path).startsWith("/data/jinshu/output/1/");
         assertThat(path).endsWith(".xlsx");
     }
 

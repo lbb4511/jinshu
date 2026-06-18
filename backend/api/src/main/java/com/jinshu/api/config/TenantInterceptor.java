@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.plugin.*;
 import org.apache.ibatis.session.Configuration;
@@ -13,10 +14,21 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * MyBatis 多租户拦截器。
+ *
+ * 当请求上下文存在 tenantId 时，自动为 SELECT/UPDATE/DELETE 语句追加
+ * tenant_id = ? 过滤条件；INSERT 语句追加 tenant_id 字段。
+ *
+ * 注意：拦截器只处理显式未包含 tenant_id 的 SQL；若 SQL 中已有 tenant_id，
+ * 则跳过，避免重复条件或参数顺序混乱。
+ */
 @Slf4j
 @Intercepts({
         @Signature(type = Executor.class, method = "query",
@@ -27,7 +39,7 @@ import java.util.regex.Pattern;
 public class TenantInterceptor implements Interceptor {
 
     private static final String TENANT_FIELD = "tenant_id";
-    private static final String TENANT_PLACEHOLDER = "tenant_id = ? AND";
+    private static final String TENANT_PARAM = "_js_tenant_id";
 
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
@@ -45,16 +57,17 @@ public class TenantInterceptor implements Interceptor {
             return invocation.proceed();
         }
 
-        String originalSql = ms.getBoundSql(parameter).getSql();
-        String modifiedSql = modifySql(originalSql, tenantId);
+        BoundSql boundSql = ms.getBoundSql(parameter);
+        String originalSql = boundSql.getSql();
+        String modifiedSql = modifySql(originalSql);
 
         if (modifiedSql.equals(originalSql)) {
             return invocation.proceed();
         }
 
-        BoundSql boundSql = ms.getBoundSql(parameter);
         Configuration configuration = ms.getConfiguration();
-        MappedStatement newMs = createNewMappedStatement(ms, new TenantBoundSqlSqlSource(configuration, modifiedSql, boundSql));
+        BoundSql newBoundSql = createTenantBoundSql(configuration, modifiedSql, boundSql, tenantId);
+        MappedStatement newMs = createNewMappedStatement(ms, new TenantBoundSqlSqlSource(newBoundSql));
 
         args[0] = newMs;
 
@@ -83,23 +96,27 @@ public class TenantInterceptor implements Interceptor {
         return false;
     }
 
-    private String modifySql(String originalSql, Long tenantId) {
+    private String modifySql(String originalSql) {
         String upperSql = originalSql.toUpperCase().trim();
 
         if (upperSql.startsWith("SELECT") ||
                 upperSql.startsWith("UPDATE") ||
                 upperSql.startsWith("DELETE")) {
 
+            // SQL 中已显式包含 tenant_id，避免重复注入
             if (upperSql.contains(TENANT_FIELD.toUpperCase())) {
                 return originalSql;
             }
 
             if (upperSql.matches("(?i).*\\bWHERE\\b.*")) {
-                return replaceFirstPattern(originalSql, "(?i)\\bWHERE\\b", "WHERE " + TENANT_PLACEHOLDER + " ");
+                return replaceFirstPattern(originalSql, "(?i)\\bWHERE\\b",
+                        "WHERE " + TENANT_FIELD + " = ? AND ");
             } else if (upperSql.startsWith("UPDATE") && upperSql.matches("(?i).*\\bSET\\b.*")) {
-                return replaceFirstPattern(originalSql, "(?i)\\bSET\\b", "SET " + TENANT_PLACEHOLDER + " ");
+                return replaceFirstPattern(originalSql, "(?i)\\bSET\\b",
+                        "SET " + TENANT_FIELD + " = ?, ");
             } else if (upperSql.startsWith("DELETE") && upperSql.matches("(?i).*\\bFROM\\b.*")) {
-                return replaceFirstPattern(originalSql, "(?i)\\bFROM\\b", "FROM " + TENANT_PLACEHOLDER + " ");
+                return replaceFirstPattern(originalSql, "(?i)\\bFROM\\b",
+                        "FROM " + TENANT_FIELD + " = ? AND ");
             }
         }
 
@@ -113,6 +130,31 @@ public class TenantInterceptor implements Interceptor {
             return input.substring(0, matcher.start()) + replacement + input.substring(matcher.end());
         }
         return input;
+    }
+
+    private BoundSql createTenantBoundSql(Configuration configuration, String modifiedSql,
+                                          BoundSql originalBoundSql, Long tenantId) {
+        List<ParameterMapping> parameterMappings = new ArrayList<>(originalBoundSql.getParameterMappings());
+
+        ParameterMapping tenantMapping = new ParameterMapping.Builder(
+                configuration,
+                TENANT_PARAM,
+                Long.class
+        ).build();
+        parameterMappings.add(0, tenantMapping);
+
+        BoundSql newBoundSql = new BoundSql(
+                configuration,
+                modifiedSql,
+                parameterMappings,
+                originalBoundSql.getParameterObject()
+        );
+        newBoundSql.setAdditionalParameter(TENANT_PARAM, tenantId);
+
+        // 复制 MyBatis 自定义参数（如 collection / foreach 产生的额外参数）
+        originalBoundSql.getAdditionalParameters().forEach(newBoundSql::setAdditionalParameter);
+
+        return newBoundSql;
     }
 
     private MappedStatement createNewMappedStatement(MappedStatement ms, SqlSource newSqlSource) {
@@ -149,24 +191,15 @@ public class TenantInterceptor implements Interceptor {
     }
 
     private static class TenantBoundSqlSqlSource implements SqlSource {
-        private final Configuration configuration;
-        private final String modifiedSql;
-        private final BoundSql originalBoundSql;
+        private final BoundSql boundSql;
 
-        public TenantBoundSqlSqlSource(Configuration configuration, String modifiedSql, BoundSql originalBoundSql) {
-            this.configuration = configuration;
-            this.modifiedSql = modifiedSql;
-            this.originalBoundSql = originalBoundSql;
+        public TenantBoundSqlSqlSource(BoundSql boundSql) {
+            this.boundSql = boundSql;
         }
 
         @Override
         public BoundSql getBoundSql(Object parameterObject) {
-            return new BoundSql(
-                    configuration,
-                    modifiedSql,
-                    originalBoundSql.getParameterMappings(),
-                    parameterObject
-            );
+            return boundSql;
         }
     }
 }
