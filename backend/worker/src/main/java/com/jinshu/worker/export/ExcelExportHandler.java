@@ -40,7 +40,10 @@ public class ExcelExportHandler {
     }
 
     private List<List<Object>> streamData(Long taskId) {
-        return List.of(List.of("row_1", "data_1"));
+        List<List<Object>> rows = List.of(List.of("row_1", "data_1"));
+        progressTracker.setTotalRows(taskId, rows.size());
+        progressTracker.updateProgress(taskId, rows.size());
+        return rows;
     }
 
     private List<List<String>> getHeader() {

@@ -15,6 +15,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -36,6 +38,12 @@ class ExportTaskServiceTest {
     @Mock
     private RabbitTemplate rabbitTemplate;
 
+    @Mock
+    private StringRedisTemplate redisTemplate;
+
+    @Mock
+    private HashOperations<String, Object, Object> hashOperations;
+
     private ExportTaskService exportTaskService;
 
     private ObjectMapper objectMapper;
@@ -48,7 +56,9 @@ class ExportTaskServiceTest {
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        exportTaskService = new ExportTaskService(taskMapper, objectMapper, reportService, rabbitTemplate);
+        exportTaskService = new ExportTaskService(taskMapper, objectMapper, reportService, rabbitTemplate, redisTemplate);
+        lenient().when(redisTemplate.opsForHash()).thenReturn(hashOperations);
+        lenient().when(hashOperations.entries(anyString())).thenReturn(Map.of());
         TenantContext.setTenantId(TENANT_ID);
         UserContext.setUserId(USER_ID);
         UserContext.setUsername("testuser");

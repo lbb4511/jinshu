@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 @Slf4j
@@ -46,9 +49,10 @@ public class ExportService {
                 case "CSV" -> csvExportHandler.export(taskId, reportId, outputPath);
                 default -> throw new IllegalArgumentException("Unsupported format: " + format);
             }
+            saveResultFileInfo(taskId, format, outputPath);
             progressTracker.updateStatus(taskId, "SUCCESS");
-        } catch (Exception e) {
-            progressTracker.updateStatus(taskId, "FAILED");
+        } catch (RuntimeException e) {
+            progressTracker.updateStatus(taskId, "FAILED", e.getMessage());
             throw e;
         }
     }
@@ -56,5 +60,23 @@ public class ExportService {
     public void markFailed(Long taskId, String errorMessage) {
         progressTracker.updateStatus(taskId, "FAILED");
         log.error("Export task {} failed: {}", taskId, errorMessage);
+    }
+
+    private void saveResultFileInfo(Long taskId, String format, String outputPath) {
+        try {
+            String actualPath = switch (format.toUpperCase()) {
+                case "CSV" -> outputPath.replace(".csv", ".zip");
+                default -> outputPath;
+            };
+            Path path = Path.of(actualPath);
+            if (!Files.exists(path)) {
+                throw new RuntimeException("Output file not found: " + actualPath);
+            }
+            long fileSize = Files.size(path);
+            String fileName = path.getFileName().toString();
+            progressTracker.saveResultFileInfo(taskId, actualPath, fileSize, fileName);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save result file info", e);
+        }
     }
 }

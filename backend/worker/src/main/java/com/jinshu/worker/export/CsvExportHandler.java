@@ -35,6 +35,7 @@ public class CsvExportHandler {
 
             int count = 0;
             List<List<Object>> rows = fetchData(taskId);
+            progressTracker.setTotalRows(taskId, rows.size());
             for (List<Object> row : rows) {
                 writer.write(escapeCsv(row));
                 writer.newLine();
@@ -46,6 +47,7 @@ public class CsvExportHandler {
                 }
             }
             writer.flush();
+            progressTracker.updateProgress(taskId, count);
         } catch (IOException e) {
             throw new RuntimeException("CSV write failed", e);
         }

@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +33,7 @@ public class ExportTaskService {
     private final ObjectMapper objectMapper;
     private final ReportService reportService;
     private final RabbitTemplate rabbitTemplate;
+    private final StringRedisTemplate redisTemplate;
 
     @Value("${jinshu.export.queue:jinshu.export}")
     private String exportQueue;
@@ -106,11 +108,41 @@ public class ExportTaskService {
 
         Map<String, Object> result = new HashMap<>();
         result.put("taskId", taskId);
-        result.put("status", task.getStatus());
-        result.put("progress", task.getProgress());
+
+        Map<Object, Object> progressEntries = getRedisProgress(taskId);
+        if (progressEntries != null && !progressEntries.isEmpty()) {
+            result.put("status", progressEntries.get("status"));
+            result.put("progress", parseProgress(progressEntries.get("progress")));
+            result.put("processedRows", parseProgress(progressEntries.get("processedRows")));
+            result.put("totalRows", parseProgress(progressEntries.get("totalRows")));
+            result.put("message", progressEntries.get("message"));
+        } else {
+            result.put("status", task.getStatus());
+            result.put("progress", task.getProgress());
+        }
         result.put("startedAt", task.getStartedAt());
         result.put("completedAt", task.getCompletedAt());
         return result;
+    }
+
+    private Map<Object, Object> getRedisProgress(Long taskId) {
+        try {
+            return redisTemplate.opsForHash().entries("jinshu:export:progress:" + taskId);
+        } catch (Exception e) {
+            log.warn("Failed to read export progress from Redis for task {}: {}", taskId, e.getMessage());
+            return null;
+        }
+    }
+
+    private Integer parseProgress(Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(value.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     public Map<String, Object> generateDownloadLink(Long taskId) {
@@ -126,8 +158,25 @@ public class ExportTaskService {
         Map<String, Object> result = new HashMap<>();
         result.put("downloadUrl", "/api/v1/files/download?taskId=" + taskId);
         result.put("expiresAt", LocalDateTime.now().plusHours(1).toString());
-        result.put("fileSize", "0MB");
+        result.put("fileSize", resolveFileSizeText(task));
         return result;
+    }
+
+    private String resolveFileSizeText(Task task) {
+        Long size = task.getResultFileSize();
+        if (size == null || size <= 0) {
+            return "0MB";
+        }
+        if (size < 1024) {
+            return size + "B";
+        }
+        if (size < 1024 * 1024) {
+            return String.format("%.1fKB", size / 1024.0);
+        }
+        if (size < 1024L * 1024 * 1024) {
+            return String.format("%.1fMB", size / (1024.0 * 1024));
+        }
+        return String.format("%.2fGB", size / (1024.0 * 1024 * 1024));
     }
 
     private String estimateSize(long rows) {

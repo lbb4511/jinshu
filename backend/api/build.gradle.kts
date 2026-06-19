@@ -43,4 +43,5 @@ tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
 
 tasks.named<Test>("test") {
     environment("DOCKER_API_VERSION", "1.45")
+    maxParallelForks = 1
 }

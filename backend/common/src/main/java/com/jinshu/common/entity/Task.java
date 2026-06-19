@@ -25,6 +25,12 @@ public class Task {
 
     private String result;
 
+    private String resultFilePath;
+
+    private Long resultFileSize;
+
+    private String resultFileName;
+
     private String errorMessage;
 
     private Long parentTaskId;

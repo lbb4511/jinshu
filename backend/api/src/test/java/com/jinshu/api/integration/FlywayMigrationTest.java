@@ -48,7 +48,7 @@ class FlywayMigrationTest {
         flyway.clean();
         var result = flyway.migrate();
 
-        assertThat(result.migrationsExecuted).isEqualTo(11);
+        assertThat(result.migrationsExecuted).isEqualTo(12);
         assertThat(result.success).isTrue();
 
         // 验证关键表已创建

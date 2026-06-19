@@ -6,15 +6,19 @@ import java.time.format.DateTimeFormatter;
 public class FileNameUtil {
 
     private static final DateTimeFormatter TIMESTAMP_FMT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-    private static final String BASE_PATH = System.getProperty("jinshu.file.base-path",
-            System.getenv().getOrDefault("JINSHU_FILE_BASE_PATH", "/data/jinshu"));
+    private static final String DEFAULT_BASE_PATH = "/data/jinshu";
+
+    public static String getBasePath() {
+        return System.getProperty("jinshu.file.base-path",
+                System.getenv().getOrDefault("JINSHU_FILE_BASE_PATH", DEFAULT_BASE_PATH));
+    }
 
     private static String outputDir() {
-        return BASE_PATH + "/output";
+        return getBasePath() + "/output";
     }
 
     private static String tempDir() {
-        return BASE_PATH + "/temp";
+        return getBasePath() + "/temp";
     }
 
     public static String generateExportFileName(Long tenantId, Long reportId, String format) {
