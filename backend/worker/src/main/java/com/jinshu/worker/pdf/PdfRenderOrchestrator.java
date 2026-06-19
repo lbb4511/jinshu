@@ -70,13 +70,7 @@ public class PdfRenderOrchestrator {
     private void renderSingle(Long taskId, Map<String, Object> config, int pageCount) {
         String renderUrl = buildRenderUrl(config);
 
-        Map<String, Object> segmentConfig = new HashMap<>(config);
-        segmentConfig.put("pageFrom", 1);
-        segmentConfig.put("pageTo", pageCount);
-        segmentConfig.put("renderUrl", renderUrl);
-        segmentConfig.put("parentTaskId", taskId);
-        segmentConfig.put("seq", 1);
-        segmentConfig.put("totalSegments", 1);
+        Map<String, Object> segmentConfig = buildSegmentConfig(config, renderUrl, taskId, 1, pageCount, 1);
 
         rabbitTemplate.convertAndSend(segmentQueue, segmentConfig);
         log.info("Dispatched single PDF render segment: taskId={}, pages={}", taskId, pageCount);
@@ -106,12 +100,7 @@ public class PdfRenderOrchestrator {
             int pageFrom = i * SEGMENT_SIZE + 1;
             int pageTo = Math.min((i + 1) * SEGMENT_SIZE, pageCount);
 
-            Map<String, Object> segmentConfig = new HashMap<>(config);
-            segmentConfig.put("pageFrom", pageFrom);
-            segmentConfig.put("pageTo", pageTo);
-            segmentConfig.put("renderUrl", renderUrl);
-            segmentConfig.put("parentTaskId", taskId);
-            segmentConfig.put("seq", i + 1);
+            Map<String, Object> segmentConfig = buildSegmentConfig(config, renderUrl, taskId, pageFrom, pageTo, i + 1);
             segmentConfig.put("totalSegments", segmentCount);
 
             rabbitTemplate.convertAndSend(segmentQueue, segmentConfig);
@@ -191,6 +180,21 @@ public class PdfRenderOrchestrator {
 
     private int queryPageCount(Map<String, Object> config) {
         return 0;
+    }
+
+    private Map<String, Object> buildSegmentConfig(Map<String, Object> config, String renderUrl,
+                                                   Long taskId, int pageFrom, int pageTo, int seq) {
+        Map<String, Object> segmentConfig = new HashMap<>(config);
+        segmentConfig.put("pageFrom", pageFrom);
+        segmentConfig.put("pageTo", pageTo);
+        segmentConfig.put("renderUrl", renderUrl);
+        segmentConfig.put("parentTaskId", taskId);
+        segmentConfig.put("seq", seq);
+        segmentConfig.put("cmykEnabled", "CMYK".equals(config.get("colorSpace")));
+        segmentConfig.put("watermarkEnabled", Boolean.TRUE.equals(config.get("watermarkEnabled")));
+        segmentConfig.put("pdfaEnabled", Boolean.TRUE.equals(config.get("pdfaEnabled")));
+        segmentConfig.put("userId", config.get("userId"));
+        return segmentConfig;
     }
 
     private String buildRenderUrl(Map<String, Object> config) {

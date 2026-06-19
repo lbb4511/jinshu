@@ -6,6 +6,7 @@ const { BrowserPool } = require('./pool/BrowserPool');
 const { PdfRenderer } = require('./render/PdfRenderer');
 const { CmykConverter } = require('./cmyk/CmykConverter');
 const { InvisibleWatermark } = require('./watermark/InvisibleWatermark');
+const { PdfAConverter } = require('./pdfa/PdfAConverter');
 
 const LOG_DIR = process.env.LOG_DIR || '/var/log/renderer';
 if (!fs.existsSync(LOG_DIR)) {
@@ -26,7 +27,7 @@ const logger = winston.createLogger({
 });
 
 const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672';
-const SEGMENT_QUEUE = process.env.SEGMENT_QUEUE || 'jinshu.render.segment';
+const SEGMENT_QUEUE = process.env.SEMENT_QUEUE || 'jinshu.render.segment';
 
 async function main() {
   logger.info('Starting PDF renderer service...');
@@ -34,7 +35,8 @@ async function main() {
   const browserPool = new BrowserPool({ logger });
   const cmykConverter = new CmykConverter({ logger });
   const watermark = new InvisibleWatermark({ logger });
-  const renderer = new PdfRenderer({ browserPool, cmykConverter, watermark, logger });
+  const pdfaConverter = new PdfAConverter({ logger });
+  const renderer = new PdfRenderer({ browserPool, cmykConverter, watermark, pdfaConverter, logger });
 
   let connection;
   try {

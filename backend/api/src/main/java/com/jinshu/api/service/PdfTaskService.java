@@ -52,6 +52,9 @@ public class PdfTaskService {
         if (!"RGB".equals(colorSpace) && !"CMYK".equals(colorSpace)) {
             throw new BusinessException(ErrorCode.PARAM_ERROR, "不支持的色彩空间: " + colorSpace);
         }
+        if (request.isPdfaEnabled() && "CMYK".equals(colorSpace)) {
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "PDF/A 模式仅支持 RGB 色彩空间");
+        }
 
         String outputPath = FileNameUtil.generateExportFilePath(tenantId, request.getReportId(), "PDF");
 
@@ -59,6 +62,8 @@ public class PdfTaskService {
         config.put("reportId", request.getReportId());
         config.put("colorSpace", colorSpace);
         config.put("watermarkEnabled", request.isWatermarkEnabled());
+        config.put("pdfaEnabled", request.isPdfaEnabled());
+        config.put("userId", userId);
         config.put("outputPath", outputPath);
         config.put("pageCount", 0);
         config.put("segments", java.util.Collections.emptyList());
@@ -109,6 +114,8 @@ public class PdfTaskService {
                 Map<String, Object> config = objectMapper.readValue(task.getParameters(), Map.class);
                 result.put("segments", config.getOrDefault("segments", java.util.Collections.emptyList()));
                 result.put("colorSpace", config.getOrDefault("colorSpace", "RGB"));
+                result.put("watermarkEnabled", config.getOrDefault("watermarkEnabled", false));
+                result.put("pdfaEnabled", config.getOrDefault("pdfaEnabled", false));
             } catch (Exception e) {
                 log.warn("Failed to parse PDF config for task {}", taskId, e);
             }
@@ -136,6 +143,8 @@ public class PdfTaskService {
             try {
                 Map<String, Object> config = objectMapper.readValue(task.getParameters(), Map.class);
                 result.put("colorSpace", config.getOrDefault("colorSpace", "RGB"));
+                result.put("watermarkEnabled", config.getOrDefault("watermarkEnabled", false));
+                result.put("pdfaEnabled", config.getOrDefault("pdfaEnabled", false));
                 result.put("warning", config.get("fallback"));
             } catch (Exception e) {
                 log.warn("Failed to parse PDF config for download task {}", taskId, e);
@@ -153,6 +162,7 @@ public class PdfTaskService {
         result.put("reportId", reportId);
         result.put("maxPages", MAX_PAGES);
         result.put("supportedColorSpaces", java.util.List.of("RGB", "CMYK"));
+        result.put("supportedCompliance", java.util.List.of("PDF/A-2b"));
         return result;
     }
 
@@ -160,6 +170,7 @@ public class PdfTaskService {
         private Long reportId;
         private String colorSpace;
         private boolean watermarkEnabled;
+        private boolean pdfaEnabled;
 
         public Long getReportId() { return reportId; }
         public void setReportId(Long reportId) { this.reportId = reportId; }
@@ -167,5 +178,7 @@ public class PdfTaskService {
         public void setColorSpace(String colorSpace) { this.colorSpace = colorSpace; }
         public boolean isWatermarkEnabled() { return watermarkEnabled; }
         public void setWatermarkEnabled(boolean watermarkEnabled) { this.watermarkEnabled = watermarkEnabled; }
+        public boolean isPdfaEnabled() { return pdfaEnabled; }
+        public void setPdfaEnabled(boolean pdfaEnabled) { this.pdfaEnabled = pdfaEnabled; }
     }
 }

@@ -7,6 +7,7 @@ class PdfRenderer {
     this.browserPool = options.browserPool;
     this.cmykConverter = options.cmykConverter;
     this.watermark = options.watermark;
+    this.pdfaConverter = options.pdfaConverter;
     this.logger = options.logger || console;
     this.timeout = options.timeout || 60000;
   }
@@ -120,6 +121,25 @@ class PdfRenderer {
           this.logger.info(`Invisible watermark embedded: ${finalPath}`);
         } catch (err) {
           this.logger.warn(`Watermark embedding failed, keeping original: ${err.message}`);
+        }
+      }
+
+      // D21: PDF/A 合规性转换
+      const pdfaEnabled = config.pdfaEnabled === true;
+      if (pdfaEnabled && this.pdfaConverter) {
+        try {
+          const pdfaLevel = config.pdfaLevel || 'PDF/A-2b';
+          const pdfaOutputPath = finalPath.replace(/\.pdf$/, '_pdfa.pdf');
+          const pdfaResult = await this.pdfaConverter.convert(finalPath, pdfaOutputPath, pdfaLevel);
+          if (pdfaResult.outputPath !== finalPath) {
+            finalPath = pdfaResult.outputPath;
+            finalSize = pdfaResult.size;
+            this.logger.info(`PDF/A conversion applied: ${finalPath}`);
+          } else if (pdfaResult.warning) {
+            this.logger.warn(`PDF/A conversion skipped: ${pdfaResult.warning}`);
+          }
+        } catch (err) {
+          this.logger.warn(`PDF/A conversion failed, keeping original: ${err.message}`);
         }
       }
 
