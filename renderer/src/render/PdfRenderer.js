@@ -5,6 +5,8 @@ const crypto = require('crypto');
 class PdfRenderer {
   constructor(options = {}) {
     this.browserPool = options.browserPool;
+    this.cmykConverter = options.cmykConverter;
+    this.watermark = options.watermark;
     this.logger = options.logger || console;
     this.timeout = options.timeout || 60000;
   }
@@ -59,6 +61,15 @@ class PdfRenderer {
       });
 
       this.logger.info(`Generating PDF: pages ${pageFrom}-${pageTo}`);
+
+      const watermarkEnabled = config.watermarkEnabled === true;
+      const watermarkPayload = watermarkEnabled && config.userId
+        ? this.watermark ? this.watermark.encode(config.userId, Date.now()) : ''
+        : '';
+      const footerWatermark = watermarkEnabled && watermarkPayload
+        ? `<span style="opacity:0.01;font-size:4px;color:white;">${watermarkPayload.substring(0, 16)}</span>`
+        : '';
+
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
@@ -70,6 +81,7 @@ class PdfRenderer {
         footerTemplate: `
           <div style="font-size:10px;text-align:center;width:100%;">
             <span class="pageNumber"></span> / <span class="totalPages"></span>
+            ${footerWatermark}
           </div>
         `,
       });
@@ -77,9 +89,44 @@ class PdfRenderer {
       fs.writeFileSync(outputPath, pdfBuffer);
       this.logger.info(`PDF written: ${outputPath} (${pdfBuffer.length} bytes)`);
 
-      const md5 = crypto.createHash('md5').update(pdfBuffer).digest('hex');
+      let finalPath = outputPath;
+      let finalSize = pdfBuffer.length;
 
-      return { taskId, seq, outputPath, md5, size: pdfBuffer.length };
+      // D20: CMYK 颜色转换
+      const cmykEnabled = config.cmykEnabled === true;
+      if (cmykEnabled && this.cmykConverter) {
+        try {
+          const cmykOutputPath = outputPath.replace(/\.pdf$/, '_cmyk.pdf');
+          const cmykResult = await this.cmykConverter.convert(outputPath, cmykOutputPath);
+          if (cmykResult.outputPath !== outputPath) {
+            finalPath = cmykResult.outputPath;
+            finalSize = cmykResult.size;
+            this.logger.info(`CMYK conversion applied: ${finalPath}`);
+          } else if (cmykResult.warning) {
+            this.logger.warn(`CMYK conversion skipped: ${cmykResult.warning}`);
+          }
+        } catch (err) {
+          this.logger.warn(`CMYK conversion failed, keeping RGB version: ${err.message}`);
+        }
+      }
+
+      // D49: PDF 隐形水印（元数据级）
+      if (watermarkEnabled && config.userId && this.watermark) {
+        try {
+          const watermarkedPath = finalPath.replace(/\.pdf$/, '_wm.pdf');
+          const wmResult = await this.watermark.embedIntoPdf(finalPath, watermarkedPath, config.userId);
+          finalPath = wmResult.outputPath;
+          finalSize = fs.statSync(finalPath).size;
+          this.logger.info(`Invisible watermark embedded: ${finalPath}`);
+        } catch (err) {
+          this.logger.warn(`Watermark embedding failed, keeping original: ${err.message}`);
+        }
+      }
+
+      const finalBuffer = fs.readFileSync(finalPath);
+      const md5 = crypto.createHash('md5').update(finalBuffer).digest('hex');
+
+      return { taskId, seq, outputPath: finalPath, md5, size: finalSize };
 
     } catch (err) {
       this.logger.error(`Render failed: taskId=${taskId}, seq=${seq}`, err);

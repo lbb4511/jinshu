@@ -4,6 +4,8 @@ const path = require('path');
 const fs = require('fs');
 const { BrowserPool } = require('./pool/BrowserPool');
 const { PdfRenderer } = require('./render/PdfRenderer');
+const { CmykConverter } = require('./cmyk/CmykConverter');
+const { InvisibleWatermark } = require('./watermark/InvisibleWatermark');
 
 const LOG_DIR = process.env.LOG_DIR || '/var/log/renderer';
 if (!fs.existsSync(LOG_DIR)) {
@@ -30,7 +32,9 @@ async function main() {
   logger.info('Starting PDF renderer service...');
 
   const browserPool = new BrowserPool({ logger });
-  const renderer = new PdfRenderer({ browserPool, logger });
+  const cmykConverter = new CmykConverter({ logger });
+  const watermark = new InvisibleWatermark({ logger });
+  const renderer = new PdfRenderer({ browserPool, cmykConverter, watermark, logger });
 
   let connection;
   try {
