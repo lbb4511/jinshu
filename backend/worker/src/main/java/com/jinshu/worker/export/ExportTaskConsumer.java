@@ -1,6 +1,7 @@
 package com.jinshu.worker.export;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jinshu.common.context.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
@@ -23,8 +24,12 @@ public class ExportTaskConsumer {
     public void handleExportTask(Map<String, Object> messageMap) {
         ExportMessage message = objectMapper.convertValue(messageMap, ExportMessage.class);
         Long taskId = message.getTaskId();
-        log.info("Received export task: taskId={}", taskId);
+        Long tenantId = message.getTenantId();
+        log.info("Received export task: taskId={}, tenantId={}", taskId, tenantId);
 
+        if (tenantId != null) {
+            TenantContext.setTenantId(tenantId);
+        }
         try {
             exportService.executeExport(taskId);
             log.info("Export task completed: taskId={}", taskId);
@@ -32,6 +37,8 @@ public class ExportTaskConsumer {
             log.error("Export task failed: taskId={}", taskId, e);
             exportService.markFailed(taskId, e.getMessage());
             throw new RuntimeException("Export processing failed", e);
+        } finally {
+            TenantContext.clear();
         }
     }
 

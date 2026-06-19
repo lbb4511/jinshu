@@ -11,6 +11,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -59,6 +60,11 @@ public abstract class IntegrationTestBase {
         @Bean
         public StringRedisTemplate stringRedisTemplate() {
             return mock(StringRedisTemplate.class);
+        }
+
+        @Bean
+        public RabbitTemplate rabbitTemplate() {
+            return mock(RabbitTemplate.class);
         }
     }
 }

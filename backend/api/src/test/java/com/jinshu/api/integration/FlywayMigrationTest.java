@@ -48,7 +48,7 @@ class FlywayMigrationTest {
         flyway.clean();
         var result = flyway.migrate();
 
-        assertThat(result.migrationsExecuted).isEqualTo(13);
+        assertThat(result.migrationsExecuted).isEqualTo(14);
         assertThat(result.success).isTrue();
 
         // 验证关键表已创建
@@ -60,6 +60,7 @@ class FlywayMigrationTest {
         assertThat(tableExists(dataSource, "sys", "desensitize_rule")).isTrue();
         assertThat(tableExists(dataSource, "meta", "report_metadata")).isTrue();
         assertThat(tableExists(dataSource, "meta", "report_template")).isTrue();
+        assertThat(tableExists(dataSource, "meta", "excel_template_file")).isTrue();
         assertThat(tableExists(dataSource, "data", "import_error_log")).isTrue();
         assertThat(tableExists(dataSource, "task", "task")).isTrue();
         assertThat(tableExists(dataSource, "task", "mq_dead_letter")).isTrue();

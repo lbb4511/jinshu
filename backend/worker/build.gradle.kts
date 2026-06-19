@@ -32,3 +32,7 @@ dependencies {
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
     mainClass.set("com.jinshu.worker.WorkerApplication")
 }
+
+tasks.named<Test>("test") {
+    jvmArgs("-Djava.awt.headless=true")
+}

@@ -69,10 +69,14 @@ public class ExportTaskService {
         String outputPath = FileNameUtil.generateExportFilePath(tenantId, request.getReportId(), format);
 
         Map<String, Object> config = new HashMap<>();
+        config.put("tenantId", tenantId);
         config.put("reportId", request.getReportId());
         config.put("format", format);
         config.put("filters", request.getFilters());
         config.put("outputPath", outputPath);
+        if (request.getTemplateId() != null) {
+            config.put("templateId", request.getTemplateId());
+        }
 
         Task task = new Task();
         task.setTenantId(tenantId);
@@ -202,6 +206,7 @@ public class ExportTaskService {
         private Long reportId;
         private String format;
         private Map<String, Object> filters;
+        private Long templateId;
 
         public Long getReportId() { return reportId; }
         public void setReportId(Long reportId) { this.reportId = reportId; }
@@ -209,5 +214,7 @@ public class ExportTaskService {
         public void setFormat(String format) { this.format = format; }
         public Map<String, Object> getFilters() { return filters; }
         public void setFilters(Map<String, Object> filters) { this.filters = filters; }
+        public Long getTemplateId() { return templateId; }
+        public void setTemplateId(Long templateId) { this.templateId = templateId; }
     }
 }
