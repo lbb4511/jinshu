@@ -1,0 +1,75 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: jinshu-api
+  namespace: jinshu
+  labels:
+    app: jinshu-backend
+spec:
+  selector:
+    matchLabels:
+      app: jinshu-backend
+  namespaceSelector:
+    matchNames:
+      - jinshu
+  endpoints:
+    - port: http
+      path: /api/v1/actuator/prometheus
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: jinshu-worker
+  namespace: jinshu
+  labels:
+    app: jinshu-worker
+spec:
+  selector:
+    matchLabels:
+      app: jinshu-worker
+  namespaceSelector:
+    matchNames:
+      - jinshu
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: jinshu-batch
+  namespace: jinshu
+  labels:
+    app: jinshu-batch
+spec:
+  selector:
+    matchLabels:
+      app: jinshu-batch
+  namespaceSelector:
+    matchNames:
+      - jinshu
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: jinshu-data-sync
+  namespace: jinshu
+  labels:
+    app: jinshu-data-sync
+spec:
+  selector:
+    matchLabels:
+      app: jinshu-data-sync
+  namespaceSelector:
+    matchNames:
+      - jinshu
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s

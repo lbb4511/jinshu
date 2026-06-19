@@ -1,0 +1,24 @@
+spring:
+  flyway:
+    enabled: false
+  datasource:
+    url: jdbc:h2:mem:testdb
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+jinshu:
+  cache:
+    enabled: false
+  jwt:
+    secret: testSecretKeyForDevelopmentOnlyChangeInProduction12345
+  encryption:
+    keys:
+      1: Wi3DdD12Qg1KkvPcS530swxnrzSWCnQN0x3OPCJk8zU=
+    latest-version: 1

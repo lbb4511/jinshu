@@ -3,6 +3,7 @@ package com.jinshu.worker.export;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jinshu.common.exception.BusinessException;
 import com.jinshu.common.exception.ErrorCode;
+import com.jinshu.common.metrics.BusinessMetrics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -28,39 +29,46 @@ public class ExportService {
 
     private final JdbcTemplate jdbcTemplate;
 
+    private final BusinessMetrics businessMetrics;
+
     public void executeExport(Long taskId) {
-        progressTracker.init(taskId);
-        progressTracker.updateStatus(taskId, "PROCESSING");
-
-        String configJson = progressTracker.getTaskConfig(taskId);
-        if (configJson == null) {
-            throw new IllegalArgumentException("Task config not found: " + taskId);
-        }
-
-        Map<String, Object> config;
+        long startNs = System.nanoTime();
         try {
-            config = objectMapper.readValue(configJson, new com.fasterxml.jackson.core.type.TypeReference<>() {});
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to parse export config", e);
-        }
+            progressTracker.init(taskId);
+            progressTracker.updateStatus(taskId, "PROCESSING");
 
-        String format = (String) config.getOrDefault("format", "EXCEL");
-        String outputPath = (String) config.get("outputPath");
-        Long reportId = Long.valueOf(config.get("reportId").toString());
-        Long tenantId = Long.valueOf(config.get("tenantId").toString());
-        String templateFilePath = resolveTemplateFilePath(tenantId, config.get("templateId"));
-
-        try {
-            switch (format.toUpperCase()) {
-                case "EXCEL" -> excelExportHandler.export(taskId, reportId, outputPath, templateFilePath);
-                case "CSV" -> csvExportHandler.export(taskId, reportId, outputPath);
-                default -> throw new IllegalArgumentException("Unsupported format: " + format);
+            String configJson = progressTracker.getTaskConfig(taskId);
+            if (configJson == null) {
+                throw new IllegalArgumentException("Task config not found: " + taskId);
             }
-            saveResultFileInfo(taskId, format, outputPath);
-            progressTracker.updateStatus(taskId, "SUCCESS");
-        } catch (RuntimeException e) {
-            progressTracker.updateStatus(taskId, "FAILED", e.getMessage());
-            throw e;
+
+            Map<String, Object> config;
+            try {
+                config = objectMapper.readValue(configJson, new com.fasterxml.jackson.core.type.TypeReference<>() {});
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to parse export config", e);
+            }
+
+            String format = (String) config.getOrDefault("format", "EXCEL");
+            String outputPath = (String) config.get("outputPath");
+            Long reportId = Long.valueOf(config.get("reportId").toString());
+            Long tenantId = Long.valueOf(config.get("tenantId").toString());
+            String templateFilePath = resolveTemplateFilePath(tenantId, config.get("templateId"));
+
+            try {
+                switch (format.toUpperCase()) {
+                    case "EXCEL" -> excelExportHandler.export(taskId, reportId, outputPath, templateFilePath);
+                    case "CSV" -> csvExportHandler.export(taskId, reportId, outputPath);
+                    default -> throw new IllegalArgumentException("Unsupported format: " + format);
+                }
+                saveResultFileInfo(taskId, format, outputPath);
+                progressTracker.updateStatus(taskId, "SUCCESS");
+            } catch (RuntimeException e) {
+                progressTracker.updateStatus(taskId, "FAILED", e.getMessage());
+                throw e;
+            }
+        } finally {
+            businessMetrics.recordExportDuration((System.nanoTime() - startNs) / 1_000_000_000.0);
         }
     }
 

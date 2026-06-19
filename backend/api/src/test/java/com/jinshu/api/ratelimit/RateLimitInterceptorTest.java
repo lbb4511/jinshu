@@ -6,6 +6,7 @@ import com.jinshu.common.context.TenantContext;
 import com.jinshu.common.context.UserContext;
 import com.jinshu.common.exception.ErrorCode;
 import com.jinshu.common.exception.RateLimitException;
+import com.jinshu.common.metrics.BusinessMetrics;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +27,9 @@ class RateLimitInterceptorTest {
     @Mock
     private RateLimitService rateLimitService;
 
+    @Mock
+    private BusinessMetrics businessMetrics;
+
     private RateLimitProperties properties;
     private RateLimitInterceptor interceptor;
 
@@ -36,7 +40,7 @@ class RateLimitInterceptorTest {
     void setUp() {
         properties = new RateLimitProperties();
         properties.setEnabled(true);
-        interceptor = new RateLimitInterceptor(rateLimitService, properties);
+        interceptor = new RateLimitInterceptor(rateLimitService, properties, businessMetrics);
     }
 
     @AfterEach

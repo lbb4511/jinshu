@@ -2,6 +2,7 @@ package com.jinshu.worker.pdf;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jinshu.common.metrics.BusinessMetrics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -29,6 +30,7 @@ public class PdfRenderOrchestrator {
     private final PdfFallbackService fallbackService;
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
+    private final BusinessMetrics businessMetrics;
 
     @Value("${jinshu.render.segment.queue:jinshu.render.segment}")
     private String segmentQueue;
@@ -37,33 +39,38 @@ public class PdfRenderOrchestrator {
     private String frontendUrl;
 
     public void execute(Long taskId) {
-        Map<String, Object> config = taskRepository.getTaskConfig(taskId);
-        if (config == null) {
-            throw new IllegalArgumentException("Task config not found: " + taskId);
-        }
-
-        taskRepository.updateTaskStatus(taskId, "PROCESSING", LocalDateTime.now());
-
-        int pageCount;
+        long startNs = System.nanoTime();
         try {
-            pageCount = queryPageCount(config);
-        } catch (Exception e) {
-            log.warn("Failed to query page count, falling back to Thymeleaf for task {}", taskId, e);
-            fallbackService.execute(taskId, config);
-            return;
-        }
+            Map<String, Object> config = taskRepository.getTaskConfig(taskId);
+            if (config == null) {
+                throw new IllegalArgumentException("Task config not found: " + taskId);
+            }
 
-        if (pageCount > MAX_PAGES) {
-            taskRepository.updateTaskError(taskId, "报表页数超出限制: " + pageCount);
-            return;
-        }
+            taskRepository.updateTaskStatus(taskId, "PROCESSING", LocalDateTime.now());
 
-        config.put("pageCount", pageCount);
+            int pageCount;
+            try {
+                pageCount = queryPageCount(config);
+            } catch (Exception e) {
+                log.warn("Failed to query page count, falling back to Thymeleaf for task {}", taskId, e);
+                fallbackService.execute(taskId, config);
+                return;
+            }
 
-        if (pageCount <= SEGMENT_SIZE) {
-            renderSingle(taskId, config, pageCount);
-        } else {
-            renderSegmented(taskId, config, pageCount);
+            if (pageCount > MAX_PAGES) {
+                taskRepository.updateTaskError(taskId, "报表页数超出限制: " + pageCount);
+                return;
+            }
+
+            config.put("pageCount", pageCount);
+
+            if (pageCount <= SEGMENT_SIZE) {
+                renderSingle(taskId, config, pageCount);
+            } else {
+                renderSegmented(taskId, config, pageCount);
+            }
+        } finally {
+            businessMetrics.recordPdfDuration((System.nanoTime() - startNs) / 1_000_000_000.0);
         }
     }
 

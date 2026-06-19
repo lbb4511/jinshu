@@ -6,6 +6,7 @@ import com.jinshu.common.context.TenantContext;
 import com.jinshu.common.context.UserContext;
 import com.jinshu.common.exception.ErrorCode;
 import com.jinshu.common.exception.RateLimitException;
+import com.jinshu.common.metrics.BusinessMetrics;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
     private final RateLimitService rateLimitService;
     private final RateLimitProperties properties;
+    private final BusinessMetrics businessMetrics;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -46,6 +48,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         if (path.equals(properties.getLoginPath())) {
             String clientIp = getClientIp(request);
             if (!rateLimitService.checkRateLimit(RateLimitScope.LOGIN_IP, null, null, clientIp, path)) {
+                businessMetrics.recordRateLimitHit(RateLimitScope.LOGIN_IP.name(), null);
                 throw rateLimitException(RateLimitScope.LOGIN_IP);
             }
             return true;
@@ -57,12 +60,14 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         // 租户并发配额 + 租户级限流
         if (tenantId != null) {
             if (!rateLimitService.acquireTenantConcurrency(tenantId)) {
+                businessMetrics.recordRateLimitHit(RateLimitScope.TENANT.name(), tenantId);
                 throw new RateLimitException(ErrorCode.TENANT_CONCURRENCY_EXCEEDED,
                         getTenantConcurrencyLimit(tenantId), 0, 1);
             }
             request.setAttribute(CONCURRENCY_TENANT_ATTR, tenantId);
 
             if (!rateLimitService.checkRateLimit(RateLimitScope.TENANT, tenantId, null, null, path)) {
+                businessMetrics.recordRateLimitHit(RateLimitScope.TENANT.name(), tenantId);
                 throw rateLimitException(RateLimitScope.TENANT);
             }
         }
@@ -70,6 +75,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         // 用户级限流
         if (userId != null) {
             if (!rateLimitService.checkRateLimit(RateLimitScope.USER, null, userId, null, path)) {
+                businessMetrics.recordRateLimitHit(RateLimitScope.USER.name(), tenantId);
                 throw rateLimitException(RateLimitScope.USER);
             }
         }

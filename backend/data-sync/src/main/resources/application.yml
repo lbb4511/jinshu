@@ -65,6 +65,24 @@ jinshu:
     fair-scheduler: true
     max-shard-rows: 100000
 
+# Actuator / Prometheus 可观测性配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    export:
+      prometheus:
+        enabled: true
+
 logging:
   level:
     com.jinshu: DEBUG

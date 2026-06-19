@@ -23,3 +23,35 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jinshu-batch
+  namespace: jinshu
+  labels:
+    app: jinshu-batch
+spec:
+  selector:
+    app: jinshu-batch
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+    name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jinshu-data-sync
+  namespace: jinshu
+  labels:
+    app: jinshu-data-sync
+spec:
+  selector:
+    app: jinshu-data-sync
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+    name: http

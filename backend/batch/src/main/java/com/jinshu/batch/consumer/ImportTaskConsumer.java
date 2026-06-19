@@ -3,6 +3,7 @@ package com.jinshu.batch.consumer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jinshu.common.constant.ImportProgressKey;
 import com.jinshu.common.dao.ImportErrorLogMapper;
+import com.jinshu.common.metrics.BusinessMetrics;
 import com.jinshu.batch.dao.ReportDataMapper;
 import com.jinshu.batch.model.*;
 import com.jinshu.batch.processor.ReportRowValidator;
@@ -34,29 +35,41 @@ public class ImportTaskConsumer {
 
     private final ObjectMapper objectMapper;
 
+    private final BusinessMetrics businessMetrics;
+
     public ImportTaskConsumer(StringRedisTemplate redisTemplate,
                               ReportDataMapper reportDataMapper,
                               ImportErrorLogMapper errorLogMapper,
-                              ObjectMapper objectMapper) {
+                              ObjectMapper objectMapper,
+                              BusinessMetrics businessMetrics) {
         this.redisTemplate = redisTemplate;
         this.reportDataMapper = reportDataMapper;
         this.errorLogMapper = errorLogMapper;
         this.objectMapper = objectMapper;
+        this.businessMetrics = businessMetrics;
     }
 
     @RabbitHandler
     public void handleImportTask(Map<String, Object> messageMap) {
         ImportTaskMessage message = objectMapper.convertValue(messageMap, ImportTaskMessage.class);
         Long taskId = message.getTaskId();
+        Long tenantId = message.getTenantId();
         int shardSeq = message.getShardSeq();
         log.info("Received import task: taskId={}, shard={}", taskId, shardSeq);
 
+        businessMetrics.trackActiveTask("IMPORT", "PROCESSING", tenantId, 1);
+        long startNs = System.nanoTime();
         try {
             processImport(message);
+            businessMetrics.recordImport("SUCCESS", tenantId);
         } catch (Exception e) {
             log.error("Import task failed: taskId={}, shard={}", taskId, shardSeq, e);
             updateShardStatus(taskId, shardSeq, "FAILED");
+            businessMetrics.recordImport("FAILED", tenantId);
             throw new RuntimeException("Import processing failed", e);
+        } finally {
+            businessMetrics.recordImportDuration((System.nanoTime() - startNs) / 1_000_000_000.0);
+            businessMetrics.trackActiveTask("IMPORT", "PROCESSING", tenantId, -1);
         }
     }
 
@@ -108,6 +121,10 @@ public class ImportTaskConsumer {
 
         dataWriter.flush();
         errorWriter.flush();
+
+        if (totalErrors[0] > 0) {
+            businessMetrics.recordImportErrors(tenantId, totalErrors[0]);
+        }
 
         int errorRate = totalProcessed[0] > 0 ? (totalErrors[0] * 100 / totalProcessed[0]) : 0;
         if (errorRate > 30) {

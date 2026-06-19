@@ -107,6 +107,24 @@ jinshu:
   ratelimit:
     enabled: true               # 启用 API 限流与租户并发配额拦截器
 
+# Actuator / Prometheus 可观测性配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    export:
+      prometheus:
+        enabled: true
+
 # 日志配置
 logging:
   level:
