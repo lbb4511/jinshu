@@ -61,9 +61,11 @@ export interface Task {
   status: string
   priority: number
   config?: string
+  parameters?: string
   progress: number
   errorMessage?: string
   reportId?: number
+  resultFileName?: string
   parentTaskId?: number
   shardSeq?: number
   shardTotal?: number
@@ -137,6 +139,39 @@ export interface ReportUpdateRequest {
   description?: string
   dataSourceId?: number
   templateConfig?: string
+}
+
+export interface ReportTemplate {
+  id: number
+  tenantId: number
+  name: string
+  description?: string
+  category: string
+  thumbnailUrl?: string
+  layoutJson?: string
+  sampleData?: string
+  isPublic?: boolean
+  isSystem?: boolean
+  status: string
+  createdBy?: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ReportTemplateCreateRequest {
+  name: string
+  category: string
+  description?: string
+  thumbnailUrl?: string
+  layoutJson?: string
+  sampleData?: string
+  isPublic?: boolean
+}
+
+export interface ReportTemplateApplyRequest {
+  name: string
+  description?: string
+  dataSourceId?: number
 }
 
 export interface DataSourceCreateRequest {

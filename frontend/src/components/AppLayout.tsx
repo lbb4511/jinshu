@@ -47,6 +47,14 @@ export default function AppLayout() {
       command: () => navigate('/datasources'),
       className: isActive('/datasources') ? 'p-menuitem-active' : '',
     },
+    ...(user?.role === 'ADMIN' || user?.role === 'USER'
+      ? [{
+          label: '模板市场',
+          icon: 'pi pi-th-large',
+          command: () => navigate('/templates'),
+          className: isActive('/templates') ? 'p-menuitem-active' : '',
+        }]
+      : []),
     {
       label: '任务中心',
       icon: 'pi pi-tasks',

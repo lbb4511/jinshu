@@ -19,4 +19,53 @@
     display: flex;
     gap: 4px;
   }
+
+  .task-progress-dialog {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .task-progress-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .task-progress-label {
+      color: #666;
+      min-width: 90px;
+    }
+
+    .task-progress-error {
+      color: #d32f2f;
+    }
+
+    .task-progress-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      label {
+        color: #666;
+        font-size: 14px;
+      }
+    }
+
+    .task-progress-shards {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      label {
+        color: #666;
+        font-size: 14px;
+      }
+    }
+
+    .task-progress-loading {
+      color: #999;
+      text-align: center;
+      padding: 8px 0;
+    }
+  }
 }

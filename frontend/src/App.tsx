@@ -6,6 +6,7 @@ import ReportEditor from './pages/ReportEditor'
 import ReportDetail from './pages/ReportDetail'
 import ReportPreview from './pages/ReportPreview'
 import TaskCenter from './pages/TaskCenter'
+import TemplateMarket from './pages/TemplateMarket'
 import DataSourceList from './pages/DataSourceList'
 import UserList from './pages/UserList'
 import AuditLogViewer from './pages/AuditLogViewer'
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/reports/:id/edit" element={<ReportEditor />} />
         <Route path="/reports/:id" element={<ReportDetail />} />
         <Route path="/tasks" element={<TaskCenter />} />
+        <Route path="/templates" element={<TemplateMarket />} />
         <Route path="/datasources" element={<DataSourceList />} />
         <Route path="/users" element={<UserList />} />
         <Route path="/audit" element={<AuditLogViewer />} />
