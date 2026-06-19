@@ -39,6 +39,9 @@ public class ReportRowValidator {
     }
 
     private void validateL1Format(Map<String, Object> cells, List<ValidationError> errors) {
+        if (columns == null) {
+            return;
+        }
         for (ColumnSchema col : columns) {
             Object value = cells.get(col.getName());
 
@@ -64,6 +67,9 @@ public class ReportRowValidator {
     }
 
     private void validateL2Type(Map<String, Object> cells, List<ValidationError> errors) {
+        if (columns == null) {
+            return;
+        }
         for (ColumnSchema col : columns) {
             Object value = cells.get(col.getName());
             if (isEmpty(value)) continue;
@@ -77,13 +83,18 @@ public class ReportRowValidator {
 
     private void validateL3Business(ExcelImportRow row, Map<String, Object> cells,
                                     List<ValidationError> errors) {
-        for (BusinessRule rule : businessRules) {
-            if (!rule.validate(cells)) {
-                errors.add(new ValidationError(0, rule.getColumn(), "BUSINESS",
-                        rule.getMessage(), cells.get(rule.getColumn())));
+        if (businessRules != null) {
+            for (BusinessRule rule : businessRules) {
+                if (!rule.validate(cells)) {
+                    errors.add(new ValidationError(0, rule.getColumn(), "BUSINESS",
+                            rule.getMessage(), cells.get(rule.getColumn())));
+                }
             }
         }
 
+        if (columns == null) {
+            return;
+        }
         for (ColumnSchema col : columns) {
             if (col.isUnique()) {
                 Object value = cells.get(col.getName());

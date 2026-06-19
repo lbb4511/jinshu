@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@MapperScan("com.jinshu.api.dao")
+@MapperScan({"com.jinshu.api.dao", "com.jinshu.common.dao"})
 public class MyBatisConfig {
 
     @Bean

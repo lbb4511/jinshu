@@ -1,7 +1,8 @@
 package com.jinshu.batch.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jinshu.batch.dao.ImportErrorLogMapper;
+import com.jinshu.common.constant.ImportProgressKey;
+import com.jinshu.common.dao.ImportErrorLogMapper;
 import com.jinshu.batch.dao.ReportDataMapper;
 import com.jinshu.batch.model.*;
 import com.jinshu.batch.processor.ReportRowValidator;
@@ -47,13 +48,14 @@ public class ImportTaskConsumer {
     public void handleImportTask(Map<String, Object> messageMap) {
         ImportTaskMessage message = objectMapper.convertValue(messageMap, ImportTaskMessage.class);
         Long taskId = message.getTaskId();
-        log.info("Received import task: taskId={}, filePath={}", taskId, message.getFilePath());
+        int shardSeq = message.getShardSeq();
+        log.info("Received import task: taskId={}, shard={}", taskId, shardSeq);
 
         try {
             processImport(message);
         } catch (Exception e) {
-            log.error("Import task failed: taskId={}", taskId, e);
-            updateTaskStatus(taskId, "FAILED");
+            log.error("Import task failed: taskId={}, shard={}", taskId, shardSeq, e);
+            updateShardStatus(taskId, shardSeq, "FAILED");
             throw new RuntimeException("Import processing failed", e);
         }
     }
@@ -73,7 +75,7 @@ public class ImportTaskConsumer {
         int shardStartRow = shardSeq * shardSize;
         int shardEndRow = Math.min(shardStartRow + shardSize, totalRows);
 
-        updateTaskStatus(taskId, "PROCESSING");
+        updateShardStatus(taskId, shardSeq, "PROCESSING");
 
         Set<String> uniqueCache = new HashSet<>();
         ReportRowValidator validator = new ReportRowValidator(columns, businessRules, uniqueCache);
@@ -101,7 +103,7 @@ public class ImportTaskConsumer {
                     dataWriter.flush();
                     errorWriter.flush();
                 },
-                processed -> updateProgress(taskId, processed, totalErrors[0])
+                processed -> updateShardProgress(taskId, shardSeq, processed, totalErrors[0])
         );
 
         dataWriter.flush();
@@ -109,26 +111,26 @@ public class ImportTaskConsumer {
 
         int errorRate = totalProcessed[0] > 0 ? (totalErrors[0] * 100 / totalProcessed[0]) : 0;
         if (errorRate > 30) {
-            log.warn("Error rate {}% exceeds threshold, marking task as FAILED", errorRate);
-            updateTaskStatus(taskId, "FAILED");
+            log.warn("Error rate {}% exceeds threshold, marking shard as FAILED", errorRate);
+            updateShardStatus(taskId, shardSeq, "FAILED");
             return;
         }
 
-        updateTaskStatus(taskId, "SUCCESS");
-        updateProgress(taskId, totalProcessed[0], totalErrors[0]);
+        updateShardStatus(taskId, shardSeq, "SUCCESS");
+        updateShardProgress(taskId, shardSeq, totalProcessed[0], totalErrors[0]);
         log.info("Import shard completed: taskId={}, shard={}, rows={}, errors={}",
                 taskId, shardSeq, totalProcessed[0], totalErrors[0]);
     }
 
-    private void updateProgress(Long taskId, int processed, int errors) {
-        String key = "jinshu:import:progress:" + taskId;
-        redisTemplate.opsForHash().put(key, "processedRows", String.valueOf(processed));
-        redisTemplate.opsForHash().put(key, "failedRows", String.valueOf(errors));
+    private void updateShardProgress(Long taskId, int shardSeq, int processed, int errors) {
+        String key = ImportProgressKey.key(taskId);
+        redisTemplate.opsForHash().put(key, ImportProgressKey.processedRows(shardSeq), String.valueOf(processed));
+        redisTemplate.opsForHash().put(key, ImportProgressKey.failedRows(shardSeq), String.valueOf(errors));
     }
 
-    private void updateTaskStatus(Long taskId, String status) {
-        String key = "jinshu:import:progress:" + taskId;
-        redisTemplate.opsForHash().put(key, "status", status);
+    private void updateShardStatus(Long taskId, int shardSeq, String status) {
+        String key = ImportProgressKey.key(taskId);
+        redisTemplate.opsForHash().put(key, ImportProgressKey.status(shardSeq), status);
     }
 
     public static class ImportTaskMessage {

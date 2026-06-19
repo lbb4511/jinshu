@@ -31,6 +31,7 @@ public class ExportTaskConsumer {
         } catch (Exception e) {
             log.error("Export task failed: taskId={}", taskId, e);
             exportService.markFailed(taskId, e.getMessage());
+            throw new RuntimeException("Export processing failed", e);
         }
     }
 

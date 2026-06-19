@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.jinshu.batch.dao.ImportErrorLogMapper">
+<mapper namespace="com.jinshu.common.dao.ImportErrorLogMapper">
 
     <insert id="batchInsert">
         INSERT INTO data.import_error_log (tenant_id, task_id, report_id, row_no, column_name,
@@ -12,9 +12,13 @@
         </foreach>
     </insert>
 
+    <sql id="Base_Column_List">
+        id, tenant_id, task_id, report_id, row_no, column_name,
+        error_type, error_message, cell_value, created_at
+    </sql>
+
     <select id="selectByTaskId" resultType="com.jinshu.common.entity.ImportErrorLog">
-        SELECT id, tenant_id, task_id, report_id, row_no, column_name,
-               error_type, error_message, cell_value, created_at
+        SELECT <include refid="Base_Column_List"/>
         FROM data.import_error_log
         WHERE task_id = #{taskId}
         ORDER BY row_no
@@ -24,5 +28,29 @@
     <select id="countByTaskId" resultType="long">
         SELECT COUNT(*) FROM data.import_error_log WHERE task_id = #{taskId}
     </select>
+
+    <select id="selectByTaskIdAndRowNo" resultType="com.jinshu.common.entity.ImportErrorLog">
+        SELECT <include refid="Base_Column_List"/>
+        FROM data.import_error_log
+        WHERE task_id = #{taskId}
+        <if test="rowNo != null">
+            AND row_no = #{rowNo}
+        </if>
+        ORDER BY row_no
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countByTaskIdAndRowNo" resultType="long">
+        SELECT COUNT(*)
+        FROM data.import_error_log
+        WHERE task_id = #{taskId}
+        <if test="rowNo != null">
+            AND row_no = #{rowNo}
+        </if>
+    </select>
+
+    <delete id="deleteByTaskId">
+        DELETE FROM data.import_error_log WHERE task_id = #{taskId}
+    </delete>
 
 </mapper>

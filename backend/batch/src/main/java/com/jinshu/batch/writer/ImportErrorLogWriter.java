@@ -1,6 +1,6 @@
 package com.jinshu.batch.writer;
 
-import com.jinshu.batch.dao.ImportErrorLogMapper;
+import com.jinshu.common.dao.ImportErrorLogMapper;
 import com.jinshu.batch.model.ValidationError;
 import com.jinshu.common.entity.ImportErrorLog;
 import lombok.extern.slf4j.Slf4j;

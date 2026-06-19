@@ -30,6 +30,7 @@ public class PdfTaskConsumer {
         } catch (Exception e) {
             log.error("PDF render task failed: taskId={}", taskId, e);
             orchestrator.markFailed(taskId, e.getMessage());
+            throw new RuntimeException("PDF render processing failed", e);
         }
     }
 
