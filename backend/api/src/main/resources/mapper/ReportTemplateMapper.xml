@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jinshu.api.dao.ReportTemplateMapper">
+
+    <resultMap id="BaseResultMap" type="com.jinshu.common.entity.ReportTemplate">
+        <id column="id" property="id"/>
+        <result column="tenant_id" property="tenantId"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="category" property="category"/>
+        <result column="thumbnail_url" property="thumbnailUrl"/>
+        <result column="layout_json" property="layoutJson"/>
+        <result column="sample_data" property="sampleData"/>
+        <result column="is_public" property="isPublic"/>
+        <result column="is_system" property="isSystem"/>
+        <result column="status" property="status"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, tenant_id, name, description, category, thumbnail_url, layout_json, sample_data,
+        is_public, is_system, status, created_by, created_at, updated_at
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO meta.report_template
+            (tenant_id, name, description, category, thumbnail_url, layout_json, sample_data,
+             is_public, is_system, status, created_by, created_at, updated_at)
+        VALUES
+            (#{tenantId}, #{name}, #{description}, #{category}, #{thumbnailUrl},
+             #{layoutJson}::jsonb, #{sampleData}::jsonb,
+             #{isPublic}, #{isSystem}, #{status}, #{createdBy}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update">
+        UPDATE meta.report_template
+        SET name = #{name},
+            description = #{description},
+            category = #{category},
+            thumbnail_url = #{thumbnailUrl},
+            layout_json = #{layoutJson}::jsonb,
+            sample_data = #{sampleData}::jsonb,
+            is_public = #{isPublic},
+            is_system = #{isSystem},
+            status = #{status},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM meta.report_template WHERE id = #{id}
+    </delete>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM meta.report_template
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM meta.report_template
+        WHERE tenant_id = #{tenantId}
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (name LIKE '%' || #{keyword} || '%' OR description LIKE '%' || #{keyword} || '%')
+        </if>
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(*)
+        FROM meta.report_template
+        WHERE tenant_id = #{tenantId}
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (name LIKE '%' || #{keyword} || '%' OR description LIKE '%' || #{keyword} || '%')
+        </if>
+    </select>
+
+    <select id="selectPublicTemplates" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM meta.report_template
+        WHERE status = COALESCE(#{status}, 'ACTIVE')
+          AND (tenant_id = 0 OR (tenant_id = #{tenantId} AND is_public = true))
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (name LIKE '%' || #{keyword} || '%' OR description LIKE '%' || #{keyword} || '%')
+        </if>
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countPublicTemplates" resultType="long">
+        SELECT COUNT(*)
+        FROM meta.report_template
+        WHERE status = COALESCE(#{status}, 'ACTIVE')
+          AND (tenant_id = 0 OR (tenant_id = #{tenantId} AND is_public = true))
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (name LIKE '%' || #{keyword} || '%' OR description LIKE '%' || #{keyword} || '%')
+        </if>
+    </select>
+
+</mapper>

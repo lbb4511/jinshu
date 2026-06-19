@@ -106,6 +106,11 @@ public enum ErrorCode {
     REPORT_NOT_FOUND(2001, "报表不存在"),
 
     /**
+     * 报表模板不存在
+     */
+    REPORT_TEMPLATE_NOT_FOUND(2002, "报表模板不存在"),
+
+    /**
      * 任务不存在
      */
     TASK_NOT_FOUND(3001, "任务不存在"),
